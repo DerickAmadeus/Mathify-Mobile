@@ -1,17 +1,19 @@
-import { Stack } from 'expo-router';
+import { Stack } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
 
-export default function Layout() {
+export default function RootLayout() {
   return (
-    <Stack 
-      screenOptions={{ 
-        headerShown: false,
-        // 1. Ubah warna background container agar tidak ada flash putih
-        contentStyle: { backgroundColor: '#0f0c29' }, 
-        // 2. Opsional: Memperhalus animasi (slide dari kanan standar iOS/Android modern)
-        animation: 'slide_from_right', 
-      }}
-    >
-      {/* Stack mendeteksi file otomatis */}
-    </Stack>
-  );
+    <>
+      <StatusBar style="light" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="login" />
+        <stack.Screeb name="register" />
+      </Stack>
+    </>
+  )
 }
