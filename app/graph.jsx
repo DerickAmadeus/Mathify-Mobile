@@ -23,10 +23,10 @@ const graphHTML = `
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <style>
-        body { margin: 0; padding: 0; background-color: #1a1a2e; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
-        canvas { display: block; width: 100%; height: 100%; }
+        body { margin: 0; padding: 0; background-color: #1a1a2e; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; touch-action: none; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
     </style>
 </head>
 <body>
@@ -145,21 +145,128 @@ const graphHTML = `
             ctx.stroke();
         }
 
-        document.addEventListener('message', function(event) {
-            const data = JSON.parse(event.data);
-            if (data.type === 'PLOT') {
-                currentFunc = data.value;
-                draw();
-            } else if (data.type === 'ZOOM_IN') {
-                scale *= 1.2;
-                draw();
-            } else if (data.type === 'ZOOM_OUT') {
-                scale /= 1.2;
-                draw();
-            } else if (data.type === 'RESET') {
-                scale = 40;
-                draw();
+        // Touch gesture variables
+        let touches = [];
+        let lastDistance = 0;
+        let lastCenter = { x: 0, y: 0 };
+        let isDragging = false;
+        let lastTouch = { x: 0, y: 0 };
+
+        // Touch event handlers
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            touches = Array.from(e.touches);
+            
+            if (touches.length === 1) {
+                // Single touch - prepare for dragging
+                isDragging = true;
+                lastTouch.x = touches[0].clientX;
+                lastTouch.y = touches[0].clientY;
+            } else if (touches.length === 2) {
+                // Two touches - prepare for pinch zoom
+                isDragging = false;
+                const dx = touches[0].clientX - touches[1].clientX;
+                const dy = touches[0].clientY - touches[1].clientY;
+                lastDistance = Math.sqrt(dx * dx + dy * dy);
+                lastCenter.x = (touches[0].clientX + touches[1].clientX) / 2;
+                lastCenter.y = (touches[0].clientY + touches[1].clientY) / 2;
             }
+        });
+
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            touches = Array.from(e.touches);
+
+            if (touches.length === 1 && isDragging) {
+                // Single touch - drag/pan
+                const deltaX = touches[0].clientX - lastTouch.x;
+                const deltaY = touches[0].clientY - lastTouch.y;
+                
+                offsetX += deltaX;
+                offsetY += deltaY;
+                
+                lastTouch.x = touches[0].clientX;
+                lastTouch.y = touches[0].clientY;
+                draw();
+            } else if (touches.length === 2) {
+                // Two touches - pinch zoom
+                const dx = touches[0].clientX - touches[1].clientX;
+                const dy = touches[0].clientY - touches[1].clientY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+                const centerY = (touches[0].clientY + touches[1].clientY) / 2;
+
+                if (lastDistance > 0) {
+                    // Calculate zoom factor
+                    const zoomFactor = distance / lastDistance;
+                    const newScale = scale * zoomFactor;
+                    
+                    // Limit zoom range
+                    if (newScale >= 5 && newScale <= 200) {
+                        scale = newScale;
+                        
+                        // Zoom towards center of pinch
+                        const zoomCenterX = centerX - width / 2;
+                        const zoomCenterY = centerY - height / 2;
+                        offsetX = offsetX * zoomFactor + zoomCenterX * (1 - zoomFactor);
+                        offsetY = offsetY * zoomFactor + zoomCenterY * (1 - zoomFactor);
+                        
+                        draw();
+                    }
+                }
+                
+                lastDistance = distance;
+                lastCenter.x = centerX;
+                lastCenter.y = centerY;
+            }
+        });
+
+        canvas.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            touches = Array.from(e.touches);
+            
+            if (touches.length === 0) {
+                isDragging = false;
+                lastDistance = 0;
+            } else if (touches.length === 1) {
+                // Switch back to single touch mode
+                isDragging = true;
+                lastTouch.x = touches[0].clientX;
+                lastTouch.y = touches[0].clientY;
+                lastDistance = 0;
+            }
+        });
+
+        // Handle messages from React Native
+        window.addEventListener('message', function(event) {
+            console.log('WebView received message:', event.data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('Parsed data:', data);
+                if (data.type === 'PLOT') {
+                    currentFunc = data.value;
+                    console.log('Setting function:', currentFunc);
+                    draw();
+                } else if (data.type === 'ZOOM_IN') {
+                    scale *= 1.2;
+                    draw();
+                } else if (data.type === 'ZOOM_OUT') {
+                    scale /= 1.2;
+                    draw();
+                } else if (data.type === 'RESET') {
+                    scale = 40;
+                    offsetX = 0;
+                    offsetY = 0;
+                    draw();
+                }
+            } catch (e) {
+                console.error('Error parsing message:', e);
+            }
+        });
+        
+        // Also handle document message for compatibility
+        document.addEventListener('message', function(event) {
+            window.postMessage(event.data, '*');
         });
         setTimeout(resize, 100);
     </script>

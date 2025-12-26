@@ -92,7 +92,7 @@ const Login = () => {
           </View>
 
           {/* Sign In Button */}
-          <TouchableOpacity style={styles.signInButton}>
+          <TouchableOpacity style={styles.signInButton} onPress={() => router.replace('/calculator')}>
             <Text style={styles.signInText}>Sign in</Text>
           </TouchableOpacity>
 
