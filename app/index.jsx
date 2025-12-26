@@ -21,9 +21,11 @@ const index = () => {
         </View>
         
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.createAccountButton}>
-            <Text style={styles.createAccountButtonText}>CREATE ACCOUNT</Text>
-          </TouchableOpacity>
+          <Link href="/register" asChild>
+            <TouchableOpacity style={styles.createAccountButton}>
+              <Text style={styles.createAccountButtonText}>CREATE ACCOUNT</Text>
+            </TouchableOpacity>
+          </Link>
           
           <Link href="/login" asChild>
             <TouchableOpacity style={styles.loginButton}>
