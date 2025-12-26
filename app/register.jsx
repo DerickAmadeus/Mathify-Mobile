@@ -120,7 +120,12 @@ const Register = () => {
             </View>
 
             {/* Register Button */}
-            <TouchableOpacity style={styles.registerButton} onPress={() => console.log(form)}>
+            <TouchableOpacity 
+              style={styles.registerButton} 
+              onPress={() => {
+                console.log(form); // (Opsional) Tetap log data form buat debugging
+                router.replace('/calculator'); 
+              }}>
               <Text style={styles.registerButtonText}>Register</Text>
               <Feather name="arrow-right" size={15} color="#302b63" />
             </TouchableOpacity>
