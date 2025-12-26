@@ -203,7 +203,7 @@ const Calculator = () => {
         style={[styles.sidebarItem, isActive && styles.sidebarItemActive]}
         onPress={() => {
           setSidebarVisible(false);
-          // router.push(path); 
+          router.push(path); 
         }}
       >
         <Feather name={icon} size={20} color={isActive ? "white" : "#a5a1c9"} />
@@ -422,8 +422,8 @@ const styles = StyleSheet.create({
   brandTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', letterSpacing: 1 },
   topBarRight: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   iconBtn: { padding: 5 },
-  profileBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' },
+  profileBtn: { flexDirection: 'row', alignItems: 'center', gap: 8 , backgroundColor: 'rgba(255,255,255,0.1)', paddingRight: 10, borderRadius: 20, padding: 5},
+  avatar: { width: 28, height: 28, borderRadius: 16, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' },
   
   // DROPDOWN
   dropdownMenu: {
