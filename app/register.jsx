@@ -29,13 +29,21 @@ const Register = () => {
       colors={['#0f0c29', '#302b63', '#24243e']}
       style={styles.container}
     >
-      {/* KeyboardAvoidingView tetap ada agar layout naik sedikit saat ngetik */}
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        {/* --- PERUBAHAN DI SINI: ScrollView diganti View biasa --- */}
+        
         <View style={styles.mainContainer}>
+          {/* Back Button */}
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <View style={styles.backButtonInner}>
+              <Text style={styles.backText}>← Back</Text>
+            </View>
+          </TouchableOpacity>
           
           {/* Bagian 1: Branding (Logo) */}
           <View style={styles.brandSection}>
@@ -260,5 +268,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 10,
     textDecorationLine: 'underline',
+  },
+
+  backButton: {
+    position: 'absolute',
+    top: 100,
+    left: 20,
+    zIndex: 10,
+  },
+  backButtonInner: {
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+  },
+  backText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

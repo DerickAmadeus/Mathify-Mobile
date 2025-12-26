@@ -12,7 +12,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
-        <stack.Screeb name="register" />
+        <Stack.Screen name="calculator" />
       </Stack>
     </>
   )

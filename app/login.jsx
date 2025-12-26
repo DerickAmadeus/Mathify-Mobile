@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
+import { Feather } from '@expo/vector-icons'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -16,7 +17,11 @@ const Login = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+      <View style={styles.mainContainer}>
         {/* Back Button */}
         <TouchableOpacity 
           style={styles.backButton}
@@ -26,6 +31,17 @@ const Login = () => {
             <Text style={styles.backText}>← Back</Text>
           </View>
         </TouchableOpacity>
+
+
+
+          <View style={styles.brandSection}>
+            <View style={styles.logoPlaceholder}> 
+               <Feather name="box" size={40} color="white" /> 
+            </View>
+            <Text style={styles.brandTitle}>Mathify</Text>
+          </View>
+
+
 
         {/* Login Card */}
         <View style={styles.loginCard}>
@@ -86,12 +102,13 @@ const Login = () => {
           {/* Sign Up Link */}
           <View style={styles.signUpContainer}>
             <Text style={styles.signUpText}>Don't have an account? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/register')}>
               <Text style={styles.signUpLink}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </View>
+      </KeyboardAvoidingView>
     </LinearGradient>
   )
 }
@@ -102,19 +119,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContainer: {
-    flexGrow: 1,
+  mainContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   backButton: {
     position: 'absolute',
-    top: 60,
+    top: 100,
     left: 20,
     zIndex: 10,
   },
   backButtonInner: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 20,
     paddingHorizontal: 15,
     paddingVertical: 8,
@@ -125,11 +142,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   loginCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 24,
     padding: 32,
-    marginTop: 100,
-    marginHorizontal: 20,
+    width: '90%',
+    maxWidth: 400,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -243,5 +260,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#60A5FA',
     fontWeight: '600',
+  },
+
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  logoPlaceholder: {
+    width: 60,
+    height: 60,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  brandTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    letterSpacing: 2,
   },
 })
