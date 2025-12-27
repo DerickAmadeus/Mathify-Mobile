@@ -1,22 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   StyleSheet, 
   Text, 
   View, 
   TouchableOpacity, 
-  StatusBar, 
-  Modal, 
   ScrollView,
   TextInput,
-  SafeAreaView,
-  TouchableWithoutFeedback,
-  Keyboard,
-  Alert
+  Keyboard
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
-import { useRouter, usePathname } from 'expo-router';
 import { WebView } from 'react-native-webview';
+import { useLayoutContext } from '../components/context/LayoutContext';
 
 // --- HTML GRAPH ENGINE ---
 const graphHTML = `
@@ -275,27 +269,25 @@ const graphHTML = `
 `;
 
 const Graph = () => {
-  const router = useRouter();
-  const pathname = usePathname();
+  const { updateLayoutProps } = useLayoutContext();
   const webViewRef = useRef(null);
   
   // State
-  const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [profileMenuVisible, setProfileMenuVisible] = useState(false);
-  const [historyModalVisible, setHistoryModalVisible] = useState(false);
-  
   const [functionInput, setFunctionInput] = useState(''); // Default Kosong
   const [history, setHistory] = useState([]);
 
-  // Mock User Data
-  const userData = { username: "User123", email: "user@example.com" };
-
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Logout", onPress: () => router.replace('/') }
-    ]);
-  };
+  // Setup layout props hanya sekali saat component mount
+  useEffect(() => {
+    const handleHistoryItemPress = (item) => {
+      handlePreset(item.value);
+    };
+    
+    updateLayoutProps({
+      history: [],
+      onClearHistory: () => setHistory([]),
+      onHistoryItemPress: handleHistoryItemPress,
+    });
+  }, [updateLayoutProps]);
 
   const sendToWeb = (type, value = null) => {
     if (webViewRef.current) {
@@ -306,91 +298,39 @@ const Graph = () => {
   const handlePlot = () => {
     Keyboard.dismiss();
     sendToWeb('PLOT', functionInput);
-    if (!history.includes(functionInput) && functionInput.trim() !== '') {
-        setHistory(prev => [functionInput, ...prev].slice(0, 15));
-    }
+    setHistory(prev => {
+      if (!prev.includes(functionInput) && functionInput.trim() !== '') {
+        const newHistory = [functionInput, ...prev].slice(0, 15);
+        // Update context dengan history baru
+        updateLayoutProps({
+          history: newHistory,
+        });
+        return newHistory;
+      }
+      return prev;
+    });
   };
 
   const handlePreset = (func) => {
       setFunctionInput(func);
       setTimeout(() => {
         sendToWeb('PLOT', func);
+        setHistory(prev => {
+          if (!prev.includes(func) && func.trim() !== '') {
+            const newHistory = [func, ...prev].slice(0, 15);
+            // Update context dengan history baru
+            updateLayoutProps({
+              history: newHistory,
+            });
+            return newHistory;
+          }
+          return prev;
+        });
       }, 100);
   };
 
-  const SidebarItem = ({ icon, text, path }) => {
-    const isActive = pathname === path;
-    return (
-      <TouchableOpacity 
-        style={[styles.sidebarItem, isActive && styles.sidebarItemActive]}
-        onPress={() => {
-          setSidebarVisible(false);
-          if (!isActive) router.push(path); 
-        }}
-      >
-        <Feather name={icon} size={20} color={isActive ? "white" : "#a5a1c9"} />
-        <Text style={[styles.sidebarText, isActive && styles.sidebarTextActive]}>{text}</Text>
-      </TouchableOpacity>
-    );
-  };
-
   return (
-    <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <SafeAreaView style={{ flex: 1 }}>
-
-        {/* === TOP BAR === */}
-        <View style={styles.topBar}>
-          <View style={styles.topBarLeft}>
-            <TouchableOpacity onPress={() => setSidebarVisible(true)} style={styles.iconBtn}>
-              <Feather name="menu" size={24} color="white" />
-            </TouchableOpacity>
-            <View style={styles.logoGroup}>
-              <Feather name="box" size={20} color="white" />
-              <Text style={styles.brandTitle}>Mathify</Text>
-            </View>
-          </View>
-
-          {/* Right Side */}
-          <View style={styles.topBarRight}>
-            <TouchableOpacity onPress={() => setHistoryModalVisible(true)} style={styles.iconBtn}>
-               <Feather name="clock" size={22} color="rgba(255,255,255,0.7)" />
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-                style={styles.profileBtn} 
-                onPress={() => setProfileMenuVisible(!profileMenuVisible)}
-            >
-                <View style={styles.avatar}>
-                  <Feather name="user" size={16} color="#302b63" />
-                </View>
-                {/* CHEVRON DOWN ADDED HERE */}
-                <Feather name="chevron-down" size={16} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* PROFILE DROPDOWN */}
-        {profileMenuVisible && (
-            <TouchableWithoutFeedback onPress={() => setProfileMenuVisible(false)}>
-                <View style={styles.dropdownOverlay}>
-                     <View style={styles.dropdownMenu}>
-                        <View style={styles.dropdownHeader}>
-                            <Text style={styles.dropdownUser}>{userData.username}</Text>
-                            <Text style={styles.dropdownEmail}>{userData.email}</Text>
-                        </View>
-                        <View style={styles.divider} />
-                        <TouchableOpacity style={styles.dropdownItem} onPress={handleLogout}>
-                            <Feather name="log-out" size={18} color="#ff6b6b" />
-                            <Text style={styles.logoutText}>Logout</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </TouchableWithoutFeedback>
-        )}
-
-        {/* === MAIN CONTENT === */}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ScrollView contentContainerStyle={[styles.scrollContent, { backgroundColor: 'transparent' }]}>
             
             {/* 1. GRAPH SECTION */}
             <View style={styles.graphWrapper}>
@@ -468,99 +408,13 @@ const Graph = () => {
             </View>
 
             <View style={{height: 30}} />
-        </ScrollView>
-
-        {/* === SIDEBAR & HISTORY MODALS === */}
-        <Modal visible={sidebarVisible} transparent={true} animationType="fade" onRequestClose={() => setSidebarVisible(false)}>
-          <TouchableWithoutFeedback onPress={() => setSidebarVisible(false)}>
-            <View style={styles.overlay}>
-              <TouchableWithoutFeedback>
-                <View style={styles.sidebar}>
-                  <View style={styles.sidebarHeader}>
-                    <Feather name="box" size={30} color="white" />
-                    <Text style={styles.sidebarTitle}>Mathify</Text>
-                  </View>
-                  <View style={styles.sidebarContent}>
-                    <SidebarItem icon="home" text="Home" path="/dashboard" />
-                    <SidebarItem icon="grid" text="Calculator" path="/calculator" />
-                    <SidebarItem icon="activity" text="Graph" path="/graph" />
-                    <SidebarItem icon="book" text="Soal / Modul" path="/modules" />
-                  </View>
-                  <View style={styles.sidebarFooter}><Text style={styles.sidebarFooterText}>Ver 1.0.0</Text></View>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-
-        <Modal visible={historyModalVisible} transparent={true} animationType="slide" onRequestClose={() => setHistoryModalVisible(false)}>
-          <View style={styles.historyOverlay}>
-            <View style={styles.historyContainer}>
-              <View style={styles.historyHeader}>
-                <Text style={styles.historyTitle}>Graph History</Text>
-                <View style={styles.historyActions}>
-                    <TouchableOpacity onPress={() => setHistory([])} style={styles.clearBtn}>
-                        <Text style={styles.clearBtnText}>Clear</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setHistoryModalVisible(false)}>
-                        <Feather name="x" size={24} color="white" />
-                    </TouchableOpacity>
-                </View>
-              </View>
-              <ScrollView contentContainerStyle={{ padding: 20 }}>
-                {history.length === 0 ? (
-                    <Text style={{color:'#888', textAlign:'center'}}>No history yet.</Text>
-                ) : (
-                    history.map((item, idx) => (
-                        <TouchableOpacity key={idx} style={styles.historyItem} onPress={() => { handlePreset(item); setHistoryModalVisible(false); }}>
-                        <Text style={styles.historyRes}>y = {item}</Text>
-                        </TouchableOpacity>
-                    ))
-                )}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-
-      </SafeAreaView>
-    </LinearGradient>
+    </ScrollView>
   );
 };
 
 export default Graph;
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  // TopBar
-  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, zIndex: 20 },
-  topBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  logoGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  brandTitle: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-  topBarRight: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  iconBtn: { padding: 5 },
-  
-  // UPDATED PROFILE BUTTON STYLE
-  profileBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 8, 
-    padding: 5, 
-    paddingRight: 10, // Sedikit padding kanan agar chevron tidak mepet
-    backgroundColor: 'rgba(255,255,255,0.1)', 
-    borderRadius: 20 
-  },
-  avatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'white', justifyContent:'center', alignItems:'center'},
-
-  // Dropdown Menu
-  dropdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 },
-  dropdownMenu: { position: 'absolute', top: 70, right: 20, backgroundColor: '#24243e', borderRadius: 12, padding: 15, width: 200, borderWidth:1, borderColor:'rgba(255,255,255,0.1)', shadowColor:'#000', shadowOffset:{width:0,height:5}, shadowOpacity:0.3, shadowRadius:10, elevation:10 },
-  dropdownHeader: { marginBottom: 10 },
-  dropdownUser: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  dropdownEmail: { color: '#aaa', fontSize: 12 },
-  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginBottom: 10 },
-  dropdownItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  logoutText: { color: '#ff6b6b', fontWeight: '600' },
-
   // Scroll Content
   scrollContent: { paddingHorizontal: 20 },
 
@@ -607,27 +461,4 @@ const styles = StyleSheet.create({
   infoTitle: { color: '#f1c40f', fontWeight: 'bold', marginBottom: 5 },
   infoList: { marginLeft: 5 },
   infoText: { color: '#ccc', fontSize: 13, lineHeight: 20 },
-
-  // Modals
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', flexDirection: 'row' },
-  sidebar: { width: '75%', height: '100%', backgroundColor: '#1a1a2e', padding: 20, paddingTop: 50 },
-  sidebarHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 40 },
-  sidebarTitle: { color: 'white', fontSize: 24, fontWeight: 'bold' },
-  sidebarContent: { gap: 10 },
-  sidebarItem: { flexDirection: 'row', alignItems: 'center', gap: 15, paddingVertical: 12, paddingHorizontal: 15, borderRadius: 10 },
-  sidebarItemActive: { backgroundColor: 'rgba(255,255,255,0.1)' },
-  sidebarText: { color: '#a5a1c9', fontSize: 16 },
-  sidebarTextActive: { color: 'white', fontWeight: 'bold' },
-  sidebarFooter: { marginTop: 'auto', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', paddingTop: 20 },
-  sidebarFooterText: { color: '#555', fontSize: 12, textAlign: 'center' },
-
-  historyOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  historyContainer: { height: '50%', backgroundColor: '#24243e', borderTopLeftRadius: 25, borderTopRightRadius: 25 },
-  historyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
-  historyTitle: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-  historyActions: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  clearBtn: { backgroundColor: '#ff6b6b', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4 },
-  clearBtnText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
-  historyItem: { marginBottom: 15, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)', paddingBottom: 5 },
-  historyRes: { color: 'white', fontSize: 18, fontWeight: '500' },
 });
