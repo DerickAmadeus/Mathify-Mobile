@@ -23,9 +23,11 @@ const TopBar = ({
       </View>
 
       <View style={styles.topBarRight}>
-        <TouchableOpacity onPress={onHistoryPress} style={styles.iconBtn}>
-          <Feather name="clock" size={22} color="rgba(255,255,255,0.7)" />
-        </TouchableOpacity>
+        {onHistoryPress && (
+          <TouchableOpacity onPress={onHistoryPress} style={styles.iconBtn}>
+            <Feather name="clock" size={22} color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+        )}
 
         <ProfileMenu
           visible={profileMenuVisible}
