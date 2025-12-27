@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.15)' 
   },
   plotBtn: { 
-    backgroundColor: '#6c5ce7', 
+    backgroundColor: 'rgba(108, 92, 231, 1)', 
     borderRadius: 10, 
     paddingVertical: 12, 
     alignItems: 'center',
