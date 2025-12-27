@@ -6,9 +6,15 @@ import {
   Modal,
   TouchableWithoutFeedback,
   StyleSheet,
+  Animated,
+  Dimensions, // Tambahkan ini untuk lebar layar dinamis
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
+
+// Ambil lebar layar agar animasi lebih akurat daripada hardcode "-300"
+const { width } = Dimensions.get('window');
+const SIDEBAR_WIDTH = width * 0.75; // 75% dari lebar layar
 
 const SidebarItem = ({ icon, text, path, isActive, onPress }) => {
   return (
@@ -27,6 +33,44 @@ const SidebarItem = ({ icon, text, path, isActive, onPress }) => {
 const Sidebar = ({ visible, onClose }) => {
   const router = useRouter();
   const pathname = usePathname();
+  // Mulai dari posisi negatif (di luar layar sebelah kiri)
+  const slideAnim = React.useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
+
+  // 1. Handle Animasi SAAT BUKA (Entry)
+  React.useEffect(() => {
+    if (visible) {
+      // Pastikan posisi awal di reset ke luar layar
+      slideAnim.setValue(-SIDEBAR_WIDTH);
+      // Animasi masuk ke 0 (posisi normal)
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
+  // 2. Fungsi Khusus untuk Menutup (Exit Animation)
+  // Kita harus jalankan animasi dulu, BARU panggil props onClose
+  const handleClose = () => {
+    Animated.timing(slideAnim, {
+      toValue: -SIDEBAR_WIDTH, // Geser balik ke kiri
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      // Callback: Dijalankan setelah animasi selesai
+      onClose(); 
+    });
+  };
+
+  const handleNavigate = (path) => {
+    // Tutup sidebar dengan animasi dulu, baru pindah halaman
+    handleClose();
+    // Beri sedikit delay agar user melihat animasi (opsional, tapi lebih halus)
+    setTimeout(() => {
+        router.push(path);
+    }, 250);
+  };
 
   const menuItems = [
     { icon: "home", text: "Home", path: "/" },
@@ -35,22 +79,28 @@ const Sidebar = ({ visible, onClose }) => {
     { icon: "book", text: "Soal / Modul", path: "/modul" },
   ];
 
-  const handleNavigate = (path) => {
-    onClose();
-    router.push(path);
-  };
-
   return (
     <Modal
       visible={visible}
       transparent={true}
-      animationType="fade"
-      onRequestClose={onClose}
+      // Ganti ke 'none' atau 'fade' agar tidak bentrok dengan animasi geser kita
+      animationType="fade" 
+      // Saat tombol back ditekan (Android), jalankan animasi tutup dulu
+      onRequestClose={handleClose} 
     >
-      <TouchableWithoutFeedback onPress={onClose}>
+      {/* Gunakan handleClose saat overlay ditekan */}
+      <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.sidebar}>
+            <Animated.View 
+              style={[
+                styles.sidebar,
+                {
+                    width: SIDEBAR_WIDTH, // Pakai width dinamis
+                    transform: [{ translateX: slideAnim }] // Ini kunci animasinya
+                }
+              ]}
+            >
               <View style={styles.sidebarHeader}>
                 <Feather name="box" size={30} color="white" />
                 <Text style={styles.sidebarTitle}>Mathify</Text>
@@ -72,7 +122,7 @@ const Sidebar = ({ visible, onClose }) => {
               <View style={styles.sidebarFooter}>
                 <Text style={styles.sidebarFooterText}>Ver 1.0.0</Text>
               </View>
-            </View>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -80,23 +130,32 @@ const Sidebar = ({ visible, onClose }) => {
   );
 };
 
+// ... styles sama seperti sebelumnya, sesuaikan width sidebar jika perlu
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Gelapkan background
     flexDirection: 'row',
   },
   sidebar: {
-    width: '75%',
+    // width dihapus disini karena sudah di-set via inline style di component
     height: '100%',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#1e1e1ebd', // Pastikan warna solid, jangan transparan
     padding: 20,
     paddingTop: 50,
+    // Tambahkan shadow agar terlihat melayang
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10, 
   },
+  // ... sisa style lainnya tetap sama
   sidebarHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    marginTop: 30,
+    gap: 30,
     marginBottom: 40,
   },
   sidebarTitle: {

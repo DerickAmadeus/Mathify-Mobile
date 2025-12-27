@@ -29,7 +29,6 @@ function StackLayout() {
               headerShown: false,
               contentStyle: { backgroundColor: 'transparent' },
               animation: 'none',
-              presentation: 'card'
             }}
           >
             <Stack.Screen name="index" />

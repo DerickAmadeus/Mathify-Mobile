@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, View} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import TopBar from './TopBar';
@@ -36,7 +36,12 @@ const AppLayout = ({
           onLogout={handleLogout}
         />
 
-        {children}
+        {/* --- PERUBAHAN DI SINI --- */}
+        {/* Bungkus children dengan View dan beri paddingTop */}
+        <View style={{ flex: 1, paddingTop: 20 }}> 
+          {children}
+        </View>
+        {/* ------------------------- */}
 
         <Sidebar
           visible={sidebarVisible}
