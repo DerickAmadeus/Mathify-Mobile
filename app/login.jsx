@@ -25,7 +25,7 @@ const Login = () => {
         {/* Back Button */}
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => router.push('/')}
         >
           <View style={styles.backButtonInner}>
             <Text style={styles.backText}>← Back</Text>
