@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -7,6 +8,7 @@ import { useLayoutContext } from '../components/context/LayoutContext';
 const Modul = () => {
   const { updateLayoutProps } = useLayoutContext();
   const isKerjaSoal = false;
+  const router = useRouter();
 
   useEffect(() => {
     updateLayoutProps({
@@ -128,7 +130,7 @@ const Modul = () => {
             difficulty="easy"
             description="Koordinat, garis, dan lingkaran"
             duration="15 menit"
-            onPress={() => console.log('Start Quiz!')}
+            onPress={() => { console.log('Start Quiz!'); router.push('/soal'); }}
           />
            <SoalContainer
             title="Statistika Dasar"

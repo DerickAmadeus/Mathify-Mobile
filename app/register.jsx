@@ -130,7 +130,7 @@ const Register = () => {
             {/* Login Link */}
             <View style={styles.loginLinkContainer}>
               <Text style={styles.loginLinkText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => router.push('/login')}>
+              <TouchableOpacity onPress={() => router.replace('/login')}>
                 <Text style={styles.loginLinkHighlight}>Sign in</Text>
               </TouchableOpacity>
             </View>
