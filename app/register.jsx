@@ -7,8 +7,6 @@ import {
   TouchableOpacity, 
   KeyboardAvoidingView, 
   Platform,
-  // Image, <-- Hapus Image jika tidak dipakai
-  // ScrollView <-- Hapus ScrollView dari import
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -35,15 +33,6 @@ const Register = () => {
       >
         
         <View style={styles.mainContainer}>
-          {/* Back Button */}
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <View style={styles.backButtonInner}>
-              <Text style={styles.backText}>← Back</Text>
-            </View>
-          </TouchableOpacity>
           
           {/* Bagian 1: Branding (Logo) */}
           <View style={styles.brandSection}>

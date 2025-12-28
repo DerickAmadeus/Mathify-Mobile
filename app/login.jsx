@@ -1,8 +1,22 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  TextInput, 
+  TouchableOpacity, 
+  KeyboardAvoidingView, 
+  Platform, 
+  TouchableWithoutFeedback, 
+  Keyboard,
+  ScrollView,
+  Dimensions
+} from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Feather } from '@expo/vector-icons'
+
+const { height } = Dimensions.get('window');
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -11,105 +25,100 @@ const Login = () => {
   const router = useRouter()
 
   return (
-    <LinearGradient
-      colors={['#0f0c29', '#302b63', '#24243e']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <LinearGradient
+        colors={['#0f0c29', '#302b63', '#24243e']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
       >
-      <View style={styles.mainContainer}>
-        {/* Back Button */}
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
+
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
         >
-          <View style={styles.backButtonInner}>
-            <Text style={styles.backText}>← Back</Text>
-          </View>
-        </TouchableOpacity>
-
-
-
-          <View style={styles.brandSection}>
-            <View style={styles.logoPlaceholder}> 
-               <Feather name="box" size={40} color="white" /> 
-            </View>
-            <Text style={styles.brandTitle}>Mathify</Text>
-          </View>
-
-
-
-        {/* Login Card */}
-        <View style={styles.loginCard}>
-          <Text style={styles.welcomeTitle}>Welcome back</Text>
-          
-          {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="kristin.watson@example.com"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-
-          {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••••••"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry
-            />
-          </View>
-
-          {/* Remember Me & Forgot Password */}
-          <View style={styles.optionsRow}>
-            <TouchableOpacity 
-              style={styles.rememberContainer}
-              onPress={() => setRememberMe(!rememberMe)}
-            >
-              <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.mainContainer}>
+              
+              <View style={styles.brandSection}>
+                <View style={styles.logoPlaceholder}> 
+                   <Feather name="box" size={40} color="white" /> 
+                </View>
+                <Text style={styles.brandTitle}>Mathify</Text>
               </View>
-              <Text style={styles.rememberText}>Remember me</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity>
-              <Text style={styles.forgotText}>Forgot password?</Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* Sign In Button */}
-          <TouchableOpacity style={styles.signInButton} onPress={() => router.replace('/calculator')}>
-            <Text style={styles.signInText}>Sign in</Text>
-          </TouchableOpacity>
+              {/* Login Card */}
+              <View style={styles.loginCard}>
+                <Text style={styles.welcomeTitle}>Welcome back</Text>
+                
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Email</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="kristin.watson@example.com"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
 
-          {/* Divider */}
-          <Text style={styles.dividerText}>Sign in with</Text>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="••••••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry
+                  />
+                </View>
 
-          {/* Sign Up Link */}
-          <View style={styles.signUpContainer}>
-            <Text style={styles.signUpText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={styles.signUpLink}>Sign up</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+                <View style={styles.optionsRow}>
+                  <TouchableOpacity 
+                    style={styles.rememberContainer}
+                    onPress={() => setRememberMe(!rememberMe)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                      {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+                    </View>
+                    <Text style={styles.rememberText}>Remember me</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity>
+                    <Text style={styles.forgotText}>Forgot password?</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.signInButton} 
+                  onPress={() => router.replace('/calculator')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.signInText}>Sign in</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.dividerText}>Sign in with</Text>
+
+                <View style={styles.signUpContainer}>
+                  <Text style={styles.signUpText}>Don't have an account? </Text>
+                  <TouchableOpacity onPress={() => router.push('/register')}>
+                    <Text style={styles.signUpLink}>Sign up</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </TouchableWithoutFeedback>
   )
 }
 
@@ -119,47 +128,82 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  mainContainer: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingBottom: 40,
+  },
+  mainContainer: {
     alignItems: 'center',
     padding: 20,
+    width: '100%',
   },
   backButton: {
     position: 'absolute',
-    top: 100,
+    top: Platform.OS === 'ios' ? 60 : 40,
     left: 20,
     zIndex: 10,
   },
   backButtonInner: {
-    borderRadius: 20,
-    paddingHorizontal: 15,
     paddingVertical: 8,
+    paddingRight: 20, 
   },
   backText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '500',
   },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: 30,
+    marginTop: 60,
+  },
+  logoPlaceholder: {
+    width: 60,
+    height: 60,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  brandTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    letterSpacing: 2,
+  },
+
+  // --- BAGIAN YANG DIPERBAIKI ---
   loginCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 24,
     padding: 32,
-    width: '90%',
+    width: '100%',
     maxWidth: 400,
+    
+    // Shadow Styling
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
-    elevation: 10,
+    
+    // FIX ANDROID: Matikan elevation jika ada border width
+    // Elevation + BorderWidth + Transparan = Garis Putih (Halo)
+    elevation: Platform.OS === 'android' ? 0 : 5, 
+    
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    
+    // FIX ANDROID: Mencegah background bocor keluar border
+    overflow: 'hidden', 
   },
+  // -----------------------------
+
   welcomeTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 32,
@@ -174,6 +218,8 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     marginBottom: 8,
   },
+  
+  // --- BAGIAN YANG DIPERBAIKI ---
   input: {
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -181,8 +227,12 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 16,
     color: 'white',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // FIX ANDROID: Mencegah warna input bocor di pojokan
+    overflow: 'hidden',
   },
+  // -----------------------------
+
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -213,11 +263,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   rememberText: {
-    fontSize: 14,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.8)',
   },
   forgotText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#60A5FA',
     fontWeight: '500',
   },
@@ -241,12 +291,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 20,
   },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 32,
-  },
   signUpContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -260,25 +304,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#60A5FA',
     fontWeight: '600',
-  },
-
-  brandSection: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  logoPlaceholder: {
-    width: 60,
-    height: 60,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  brandTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    letterSpacing: 2,
   },
 })
