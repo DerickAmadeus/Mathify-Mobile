@@ -32,7 +32,6 @@ const Login = () => {
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
