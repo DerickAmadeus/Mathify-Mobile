@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { 
+  Image,
   StyleSheet, 
   Text, 
   View, 
@@ -50,7 +51,11 @@ const Register = () => {
               {/* Bagian 1: Branding (Logo) */}
               <View style={styles.brandSection}>
                 <View style={styles.logoPlaceholder}> 
-                   <Feather name="box" size={40} color="white" /> 
+                  <Image 
+                    source={require('../assets/logo.png')} 
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.brandTitle}>Mathify</Text>
               </View>
@@ -175,6 +180,10 @@ const styles = StyleSheet.create({
   },
   
   // --- Styling Branding (Tetap Sama) ---
+  logoImage: {
+      width: 40,  
+      height: 40,
+  },
   brandSection: {
     alignItems: 'center',
     marginBottom: 30,
@@ -188,6 +197,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   brandTitle: {
     fontSize: 28,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { 
+  Image,
   StyleSheet, 
   Text, 
   View, 
@@ -45,7 +46,11 @@ const Login = () => {
               
               <View style={styles.brandSection}>
                 <View style={styles.logoPlaceholder}> 
-                   <Feather name="box" size={40} color="white" /> 
+                  <Image 
+                    source={require('../assets/logo.png')} 
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.brandTitle}>Mathify</Text>
               </View>
@@ -126,6 +131,10 @@ export default Login
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  logoImage: {
+      width: 40,  
+      height: 40,
   },
   scrollContent: {
     flexGrow: 1,
