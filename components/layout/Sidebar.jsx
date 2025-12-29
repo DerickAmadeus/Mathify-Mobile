@@ -73,7 +73,7 @@ const Sidebar = ({ visible, onClose }) => {
   };
 
   const menuItems = [
-    { icon: "home", text: "Home", path: "/" },
+    { icon: "home", text: "Home", path: "/home" },
     { icon: "grid", text: "Calculator", path: "/calculator" },
     { icon: "activity", text: "Graph", path: "/graph" },
     { icon: "book", text: "Soal / Modul", path: "/modul" },

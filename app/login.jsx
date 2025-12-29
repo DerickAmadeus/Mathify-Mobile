@@ -98,7 +98,7 @@ const Login = () => {
 
                 <TouchableOpacity 
                   style={styles.signInButton} 
-                  onPress={() => router.replace('/calculator')}
+                  onPress={() => router.replace('/home')}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.signInText}>Sign in</Text>
