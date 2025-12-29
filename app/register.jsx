@@ -7,6 +7,9 @@ import {
   TouchableOpacity, 
   KeyboardAvoidingView, 
   Platform,
+  ScrollView, // Tambahkan ini
+  TouchableWithoutFeedback, // Tambahkan ini (opsional, biar keyboard nutup pas klik luar)
+  Keyboard // Tambahkan ini
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -23,122 +26,134 @@ const Register = () => {
   });
 
   return (
-    <LinearGradient
-      colors={['#0f0c29', '#302b63', '#24243e']}
-      style={styles.container}
-    >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+    // Membungkus dengan TouchableWithoutFeedback agar keyboard menutup saat klik area kosong
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <LinearGradient
+        colors={['#0f0c29', '#302b63', '#24243e']}
+        style={styles.container}
       >
-        
-        <View style={styles.mainContainer}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // Adjustment untuk Android
+        >
           
-          {/* Bagian 1: Branding (Logo) */}
-          <View style={styles.brandSection}>
-            <View style={styles.logoPlaceholder}> 
-               <Feather name="box" size={40} color="white" /> 
-            </View>
-            <Text style={styles.brandTitle}>Mathify</Text>
-          </View>
+          {/* Tambahkan ScrollView di sini */}
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent} 
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            
+            <View style={styles.mainContainer}>
+              
+              {/* Bagian 1: Branding (Logo) */}
+              <View style={styles.brandSection}>
+                <View style={styles.logoPlaceholder}> 
+                   <Feather name="box" size={40} color="white" /> 
+                </View>
+                <Text style={styles.brandTitle}>Mathify</Text>
+              </View>
 
-          {/* Bagian 2: Register Form */}
-          <View style={styles.formSection}>
-            <View style={styles.headerForm}>
-              <Text style={styles.headerTitle}>Create account</Text>
-              <Text style={styles.headerSubtitle}>Sign up to join Mathify</Text>
-            </View>
+              {/* Bagian 2: Register Form */}
+              <View style={styles.formSection}>
+                <View style={styles.headerForm}>
+                  <Text style={styles.headerTitle}>Create account</Text>
+                  <Text style={styles.headerSubtitle}>Sign up to join Mathify</Text>
+                </View>
 
-            {/* Input: Username */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Username</Text>
-              <View style={styles.inputWrapper}>
-                <Feather name="user" size={15} color="#aaa" style={styles.inputIcon} />
-                <TextInput 
-                  style={styles.input}
-                  placeholder="Choose a username"
-                  placeholderTextColor="#aaa"
-                  value={form.username}
-                  onChangeText={(text) => setForm({...form, username: text})}
-                />
+                {/* Input: Username */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Username</Text>
+                  <View style={styles.inputWrapper}>
+                    <Feather name="user" size={15} color="#aaa" style={styles.inputIcon} />
+                    <TextInput 
+                      style={styles.input}
+                      placeholder="Choose a username"
+                      placeholderTextColor="#aaa"
+                      value={form.username}
+                      onChangeText={(text) => setForm({...form, username: text})}
+                    />
+                  </View>
+                </View>
+
+                {/* Input: Email */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Email</Text>
+                  <View style={styles.inputWrapper}>
+                    <Feather name="mail" size={15} color="#aaa" style={styles.inputIcon} />
+                    <TextInput 
+                      style={styles.input}
+                      placeholder="you@example.com"
+                      placeholderTextColor="#aaa"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={form.email}
+                      onChangeText={(text) => setForm({...form, email: text})}
+                    />
+                  </View>
+                </View>
+
+                {/* Input: Password */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Password</Text>
+                  <View style={styles.inputWrapper}>
+                    <Feather name="lock" size={15} color="#aaa" style={styles.inputIcon} />
+                    <TextInput 
+                      style={styles.input}
+                      placeholder="Create a password"
+                      placeholderTextColor="#aaa"
+                      secureTextEntry={true}      
+                      autoCapitalize="none"       
+                      autoCorrect={false}         
+                      textContentType="password"  
+                      value={form.password}
+                      onChangeText={(text) => setForm({...form, password: text})}
+                    />
+                  </View>
+                </View>
+
+                {/* Input: Confirm Password */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Confirm Password</Text>
+                  <View style={styles.inputWrapper}>
+                    <Feather name="check-circle" size={15} color="#aaa" style={styles.inputIcon} />
+                    <TextInput 
+                      style={styles.input}
+                      placeholder="Repeat your password"
+                      placeholderTextColor="#aaa"
+                      secureTextEntry
+                      value={form.confirmPassword}
+                      onChangeText={(text) => setForm({...form, confirmPassword: text})}
+                    />
+                  </View>
+                </View>
+
+                {/* Register Button */}
+                <TouchableOpacity 
+                  style={styles.registerButton} 
+                  onPress={() => {
+                    console.log(form); 
+                    router.replace('/home'); 
+                  }}>
+                  <Text style={styles.registerButtonText}>Register</Text>
+                  <Feather name="arrow-right" size={15} color="#302b63" />
+                </TouchableOpacity>
+
+                {/* Login Link */}
+                <View style={styles.loginLinkContainer}>
+                  <Text style={styles.loginLinkText}>Already have an account? </Text>
+                  <TouchableOpacity onPress={() => router.push('/login')}>
+                    <Text style={styles.loginLinkHighlight}>Sign in</Text>
+                  </TouchableOpacity>
+                </View>
+
               </View>
             </View>
-
-            {/* Input: Email */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <View style={styles.inputWrapper}>
-                <Feather name="mail" size={15} color="#aaa" style={styles.inputIcon} />
-                <TextInput 
-                  style={styles.input}
-                  placeholder="you@example.com"
-                  placeholderTextColor="#aaa"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={form.email}
-                  onChangeText={(text) => setForm({...form, email: text})}
-                />
-              </View>
-            </View>
-
-            {/* Input: Password */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputWrapper}>
-                <Feather name="lock" size={15} color="#aaa" style={styles.inputIcon} />
-                <TextInput 
-                  style={styles.input}
-                  placeholder="Create a password"
-                  placeholderTextColor="#aaa"
-                  secureTextEntry={true}      
-                  autoCapitalize="none"       
-                  autoCorrect={false}         
-                  textContentType="password"  
-                  value={form.password}
-                  onChangeText={(text) => setForm({...form, password: text})}
-                />
-              </View>
-            </View>
-
-            {/* Input: Confirm Password */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <View style={styles.inputWrapper}>
-                <Feather name="check-circle" size={15} color="#aaa" style={styles.inputIcon} />
-                <TextInput 
-                  style={styles.input}
-                  placeholder="Repeat your password"
-                  placeholderTextColor="#aaa"
-                  secureTextEntry
-                  value={form.confirmPassword}
-                  onChangeText={(text) => setForm({...form, confirmPassword: text})}
-                />
-              </View>
-            </View>
-
-            {/* Register Button */}
-            <TouchableOpacity 
-              style={styles.registerButton} 
-              onPress={() => {
-                console.log(form); // (Opsional) Tetap log data form buat debugging
-                router.replace('/calculator'); 
-              }}>
-              <Text style={styles.registerButtonText}>Register</Text>
-              <Feather name="arrow-right" size={15} color="#302b63" />
-            </TouchableOpacity>
-
-            {/* Login Link */}
-            <View style={styles.loginLinkContainer}>
-              <Text style={styles.loginLinkText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => router.push('/login')}>
-                <Text style={styles.loginLinkHighlight}>Sign in</Text>
-              </TouchableOpacity>
-            </View>
-
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -148,18 +163,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // --- Style Pengganti ScrollContent ---
+  // --- Perubahan Utama di sini ---
+  scrollContent: {
+    flexGrow: 1, // Memungkinkan konten discroll jika keyboard muncul
+    justifyContent: 'center', // Tetap di tengah jika tidak ada keyboard/layar besar
+    paddingBottom: 20, // Memberi ruang ekstra di bawah saat discroll mentok
+  },
   mainContainer: {
-    flex: 1, // Agar memenuhi layar
     padding: 24,
-    justifyContent: 'center', // Konten selalu di tengah vertikal
+    width: '100%',
   },
   
-  // --- Styling Branding ---
+  // --- Styling Branding (Tetap Sama) ---
   brandSection: {
     alignItems: 'center',
     marginBottom: 30,
-    marginTop: 30, 
+    marginTop: 10, 
   },
   logoPlaceholder: {
     width: 60,
@@ -177,7 +196,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  // --- Styling Form ---
+  // --- Styling Form (Tetap Sama) ---
   formSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 24,
@@ -262,22 +281,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 10,
     textDecorationLine: 'underline',
-  },
-
-  backButton: {
-    position: 'absolute',
-    top: 100,
-    left: 20,
-    zIndex: 10,
-  },
-  backButtonInner: {
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  backText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
   },
 });
