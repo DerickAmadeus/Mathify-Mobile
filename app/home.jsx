@@ -73,8 +73,8 @@ const Home = () => {
 
       {/* FIXED HEADER SECTION */}
       <View style={styles.fixedHeader}>
-        <Text style={styles.welcomeTitle}>Virtual Lab</Text>
-        <Text style={styles.welcomeSubtitle}>Eksplorasi dunia angka dan logika di sini</Text>
+        <Text style={styles.welcomeTitle}>Mathify's Virtual Lab</Text>
+        <Text style={styles.welcomeSubtitle}>Laboratorium virtual pribadi untuk semua kebutuhan hitunganmu</Text>
       </View>
 
       {/* SCROLLABLE CONTENT */}
