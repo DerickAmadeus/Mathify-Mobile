@@ -113,7 +113,7 @@ const Login = () => {
 
                 <View style={styles.signUpContainer}>
                   <Text style={styles.signUpText}>Don't have an account? </Text>
-                  <TouchableOpacity onPress={() => router.push('/register')}>
+                  <TouchableOpacity onPress={() => router.replace('/register')}>
                     <Text style={styles.signUpLink}>Sign up</Text>
                   </TouchableOpacity>
                 </View>
