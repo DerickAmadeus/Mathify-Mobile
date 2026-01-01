@@ -9,7 +9,7 @@ function StackLayout() {
   const pathname = usePathname();
   
   // Pages yang membutuhkan AppLayout dengan gradient background
-  const layoutPages = ['/calculator', '/graph', '/modul'];
+  const layoutPages = ['/home', '/calculator', '/graph', '/modul'];
   
   // History icon HANYA muncul di calculator dan graph saja
   const showHistory = pathname === '/calculator' || pathname === '/graph';
@@ -34,6 +34,7 @@ function StackLayout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
+            <Stack.Screen name="home" />
             <Stack.Screen name="calculator" />
             <Stack.Screen name="graph" />
             <Stack.Screen name="modul" />
@@ -55,6 +56,7 @@ function StackLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
+      <Stack.Screen name="home" />
       <Stack.Screen name="calculator" />
       <Stack.Screen name="graph" />
       <Stack.Screen name="modul" />

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Image, 
   View,
   Text,
   TouchableOpacity,
@@ -73,7 +74,7 @@ const Sidebar = ({ visible, onClose }) => {
   };
 
   const menuItems = [
-    { icon: "home", text: "Home", path: "/" },
+    { icon: "home", text: "Home", path: "/home" },
     { icon: "grid", text: "Calculator", path: "/calculator" },
     { icon: "activity", text: "Graph", path: "/graph" },
     { icon: "book", text: "Soal / Modul", path: "/modul" },
@@ -102,7 +103,11 @@ const Sidebar = ({ visible, onClose }) => {
               ]}
             >
               <View style={styles.sidebarHeader}>
-                <Feather name="box" size={30} color="white" />
+              <Image 
+                source={require('../../assets/logo.png')} 
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
                 <Text style={styles.sidebarTitle}>Mathify</Text>
               </View>
               
@@ -136,6 +141,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Gelapkan background
     flexDirection: 'row',
+  },
+  logoImage: {
+      width: 32,  
+      height: 32,
+      marginLeft: 12, 
   },
   sidebar: {
     // width dihapus disini karena sudah di-set via inline style di component

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import ProfileMenu from './ProfileMenu';
 
@@ -17,7 +17,11 @@ const TopBar = ({
           <Feather name="menu" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.logoGroup}>
-          <Feather name="box" size={20} color="white" />
+        <Image 
+          source={require('../../assets/logo.png')} 
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
           <Text style={styles.brandTitle}>Mathify</Text>
         </View>
       </View>
@@ -57,6 +61,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  logoImage: {
+      width: 24,  
+      height: 24,
+      marginRight: 8, 
   },
   brandTitle: {
     color: 'white',
