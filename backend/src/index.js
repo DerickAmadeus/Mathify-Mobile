@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv');
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 // Load environment variables from root directory
 dotenv.config({ path: path.join(__dirname, '../../.env') });
@@ -19,6 +21,27 @@ const {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Swagger configuration
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Mathify API',
+      version: '1.0.0',
+      description: 'API documentation for Mathify backend'
+    },
+    servers: [
+      {
+        url: `http://localhost:${PORT}`,
+        description: 'Development server'
+      }
+    ]
+  },
+  apis: ['./src/routes/*.js'] // Path to route files with Swagger comments
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
 // Apply middleware in order
 app.use(requestIdMiddleware);       // Request ID tracking
 app.use(corsMiddleware);            // CORS
@@ -26,6 +49,9 @@ app.use(loggingMiddleware);         // Logging
 app.use(rateLimitMiddleware());     // Rate limiting
 app.use(jsonMiddleware);            // JSON parser
 app.use(urlencodedMiddleware);      // URL encoded parser
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
@@ -46,11 +72,12 @@ app.get('/api/protected', authMiddleware, (req, res) => {
   });
 });
 
-// Routes (tambahkan routes lain di sini)
+// Routes
 app.use('/api/users', require('./routes/users'));
-// app.use('/api/auth', require('./routes/authRoutes'));
-// app.use('/api/calculator', require('./routes/calculatorRoutes'));
-// app.use('/api/quiz', require('./routes/quizRoutes'));
+app.use('/api/calculator', require('./routes/calculator'));
+app.use('/api/graph', require('./routes/graph'));
+app.use('/api/modules', require('./routes/modules'));
+app.use('/api/questions', require('./routes/questions'));
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -68,6 +95,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
 });
 
 module.exports = app;
