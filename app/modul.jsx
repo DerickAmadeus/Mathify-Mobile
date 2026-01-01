@@ -100,17 +100,20 @@ const Modul = () => {
   const renderContent = () => {
     if (isKerjaSoal) {
       return (
-        <View>
-          <Text style={styles.subtitle}>Modul Kerja Soal Aktif</Text>
-        </View>
+        <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
+          <View>
+            <Text style={styles.subtitle}>Modul Kerja Soal Aktif</Text>
+          </View>
+        </LinearGradient>
       );
     } else {
       return (
-        <ScrollView 
-          style={styles.container}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
+        <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
+          <ScrollView 
+            style={styles.container}
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={false}
+          >
           <SoalContainer
             title="Kalkulus I"
             difficulty="medium"
@@ -146,7 +149,8 @@ const Modul = () => {
             duration="30 menit"
             onPress={() => console.log('Start Quiz!')}
           />
-        </ScrollView>
+          </ScrollView>
+        </LinearGradient>
       );
     }
   };
@@ -155,12 +159,17 @@ const Modul = () => {
 };
 
 const styles = StyleSheet.create({
+  // Gradient Background
+  gradientBackground: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: 'transparent',
   },
   contentContainer: {
     padding: 20,
+    paddingTop: 36, // Tambahan padding top agar tidak mepet dengan top bar
     paddingBottom: 40,
   },
   

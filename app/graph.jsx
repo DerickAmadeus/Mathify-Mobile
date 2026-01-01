@@ -8,6 +8,7 @@ import {
   TextInput,
   Keyboard
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import { useLayoutContext } from '../components/context/LayoutContext';
@@ -330,7 +331,8 @@ const Graph = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={[styles.scrollContent, { backgroundColor: 'transparent' }]}>
+    <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { backgroundColor: 'transparent' }]}>
             
             {/* 1. GRAPH SECTION */}
             <View style={styles.graphWrapper}>
@@ -408,19 +410,27 @@ const Graph = () => {
             </View>
 
             <View style={{height: 30}} />
-    </ScrollView>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 export default Graph;
 
 const styles = StyleSheet.create({
+  // Gradient Background
+  gradientBackground: {
+    flex: 1,
+  },
   // Scroll Content
-  scrollContent: { paddingHorizontal: 20 },
+  scrollContent: { 
+    paddingHorizontal: 20,
+    paddingTop: 36 // Menambahkan padding top agar tidak mepet dengan top bar
+  },
 
   // Graph
   graphWrapper: { marginBottom: 20 },
-  canvasContainer: { height: 350, width: '100%', borderRadius: 12, overflow: 'hidden', backgroundColor: '#1a1a2e', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', position: 'relative' },
+  canvasContainer: { height: 350, width: '100%', borderRadius: 12, overflow: 'hidden', backgroundColor: '#1a1a2e', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', position: 'relative'},
   webview: { backgroundColor: 'transparent' },
   zoomOverlay: { position: 'absolute', bottom: 15, right: 15, gap: 10 },
   zoomCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: '#000', elevation: 5 },

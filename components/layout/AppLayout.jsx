@@ -25,8 +25,8 @@ const AppLayout = ({
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor="#323232ff" translucent />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000000ff' }} edges={['top']}>
         
         <TopBar
           onMenuPress={() => setSidebarVisible(true)}
@@ -38,7 +38,7 @@ const AppLayout = ({
 
         {/* --- PERUBAHAN DI SINI --- */}
         {/* Bungkus children dengan View dan beri paddingTop */}
-        <View style={{ flex: 1, paddingTop: 20 }}> 
+        <View style={{ flex: 1 }}> 
           {children}
         </View>
         {/* ------------------------- */}

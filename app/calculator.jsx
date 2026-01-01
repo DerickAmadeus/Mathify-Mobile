@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Button from '../components/ui/Button';
 import { useLayoutContext } from '../components/context/LayoutContext';
 
@@ -170,9 +171,10 @@ const Calculator = () => {
   );
 
   return (
-    <View style={styles.mainContent}>
-      {/* DISPLAY */}
-      <View style={styles.displayContainer}>
+    <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
+      <View style={styles.mainContent}>
+        {/* DISPLAY */}
+        <View style={styles.displayContainer}>
         <Text 
           style={styles.inputText} 
           numberOfLines={2} 
@@ -235,14 +237,19 @@ const Calculator = () => {
           <CalcBtn label="°" type="number" /> 
           <CalcBtn label="=" type="equal" />
         </View>
+        </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 export default Calculator;
 
 const styles = StyleSheet.create({
+  // GRADIENT BACKGROUND
+  gradientBackground: {
+    flex: 1,
+  },
   // CONTENT
   mainContent: { 
     flex: 1, 

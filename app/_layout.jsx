@@ -1,6 +1,5 @@
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { LinearGradient } from 'expo-linear-gradient'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AppLayout, LayoutProvider } from '../components'
 import { usePathname } from 'expo-router'
@@ -8,7 +7,7 @@ import { usePathname } from 'expo-router'
 function StackLayout() {
   const pathname = usePathname();
   
-  // Pages yang membutuhkan AppLayout dengan gradient background
+  // Pages yang membutuhkan AppLayout
   const layoutPages = ['/home', '/calculator', '/graph', '/modul'];
   
   // History icon HANYA muncul di calculator dan graph saja
@@ -19,28 +18,26 @@ function StackLayout() {
   
   if (shouldShowAppLayout) {
     return (
-      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={{ flex: 1 }}>
-        <AppLayout 
-          showHistory={showHistory}
-          historyType={historyType}
+      <AppLayout 
+        showHistory={showHistory}
+        historyType={historyType}
+      >
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: 'transparent' },
+            animation: 'none',
+          }}
         >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: 'transparent' },
-              animation: 'none',
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="login" />
-            <Stack.Screen name="register" />
-            <Stack.Screen name="home" />
-            <Stack.Screen name="calculator" />
-            <Stack.Screen name="graph" />
-            <Stack.Screen name="modul" />
-          </Stack>
-        </AppLayout>
-      </LinearGradient>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="home" />
+          <Stack.Screen name="calculator" />
+          <Stack.Screen name="graph" />
+          <Stack.Screen name="modul" />
+        </Stack>
+      </AppLayout>
     );
   }
 

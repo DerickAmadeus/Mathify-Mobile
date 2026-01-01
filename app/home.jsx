@@ -68,11 +68,12 @@ const Home = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
 
-      {/* FIXED HEADER SECTION */}
-      <View style={styles.fixedHeader}>
+        {/* FIXED HEADER SECTION */}
+        <View style={styles.fixedHeader}>
         <Text style={styles.welcomeTitle}>Mathify's Virtual Lab</Text>
         <Text style={styles.welcomeSubtitle}>Laboratorium virtual pribadi untuk semua kebutuhan hitunganmu</Text>
       </View>
@@ -109,17 +110,23 @@ const Home = () => {
 
         <View style={{ height: 20 }} />
       </ScrollView>
-    </View>
+      </View>
+    </LinearGradient>
   );
 };
 
 export default Home;
 
 const styles = StyleSheet.create({
+  // --- GRADIENT BACKGROUND ---
+  gradientBackground: {
+    flex: 1,
+  },
   // --- CONTAINER UTAMA ---
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+    paddingTop: 36, // 
   },
 
   // --- HEADER SECTION ---
