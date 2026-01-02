@@ -1,0 +1,349 @@
+// controllers/moduleController.js
+const { supabase } = require('../config/supabase');
+
+const moduleController = {
+  // Get all modules
+  getAllModules: async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from('modules')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        data: data || []
+      });
+    } catch (err) {
+      console.error('Error fetching modules:', err);
+      res.status(500).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  },
+
+  // Get module by ID
+  getModuleById: async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from('modules')
+        .select('*')
+        .eq('id', req.params.id)
+        .single();
+
+      if (error) throw error;
+
+      if (!data) {
+        return res.status(404).json({ 
+          success: false,
+          error: 'Module not found' 
+        });
+      }
+
+      res.json({
+        success: true,
+        data: data
+      });
+    } catch (err) {
+      console.error('Error fetching module:', err);
+      res.status(500).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  },
+
+  // Create new module
+  createModule: async (req, res) => {
+    try {
+      const { title, description, total_questions, duration_minutes, difficulty } = req.body;
+
+      // Basic validation
+      if (!title || !total_questions || !duration_minutes) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Title, total_questions, and duration_minutes are required' 
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('modules')
+        .insert([{ 
+          title, 
+          description: description || '', 
+          total_questions, 
+          duration_minutes,
+          difficulty: difficulty || 'medium'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      res.status(201).json({
+        success: true,
+        data: data
+      });
+    } catch (err) {
+      console.error('Error creating module:', err);
+      res.status(400).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  },
+
+  // Get user's progress for a module
+  getModuleProgress: async (req, res) => {
+    try {
+      const moduleId = req.params.id;
+      const userId = req.query.user_id || req.body.user_id; // Get from query or body
+
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          error: 'user_id is required'
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('user_module_progress')
+        .select('*')
+        .eq('module_id', moduleId)
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+        throw error;
+      }
+
+      res.json({
+        success: true,
+        data: data || null
+      });
+    } catch (err) {
+      console.error('Error fetching progress:', err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  },
+
+  // Save/update user's progress for a module
+  saveModuleProgress: async (req, res) => {
+    try {
+      const moduleId = req.params.id;
+      const { user_id, status, remaining_seconds, right_answer, wrong_answer } = req.body;
+
+      if (!user_id) {
+        return res.status(400).json({
+          success: false,
+          error: 'user_id is required'
+        });
+      }
+
+      // Check if progress already exists
+      const { data: existing } = await supabase
+        .from('user_module_progress')
+        .select('*')
+        .eq('module_id', moduleId)
+        .eq('user_id', user_id)
+        .single();
+
+      let result;
+
+      if (existing) {
+        // Update existing progress
+        const updateData = {
+          status: status || 'in_progress',
+          remaining_seconds: remaining_seconds,
+          updated_at: new Date().toISOString()
+        };
+
+        if (status === 'in_progress' && !existing.started_at) {
+          updateData.started_at = new Date().toISOString();
+        }
+
+        if (status === 'completed') {
+          updateData.completed_at = new Date().toISOString();
+          
+          // Save quiz results when completed
+          if (right_answer !== undefined) {
+            updateData.right_answer = right_answer;
+          }
+          if (wrong_answer !== undefined) {
+            updateData.wrong_answer = wrong_answer;
+          }
+        }
+
+        const { data, error } = await supabase
+          .from('user_module_progress')
+          .update(updateData)
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        result = data;
+      } else {
+        // Insert new progress
+        const insertData = {
+          user_id,
+          module_id: moduleId,
+          status: status || 'in_progress',
+          remaining_seconds: remaining_seconds,
+          started_at: status === 'in_progress' ? new Date().toISOString() : null
+        };
+
+        if (status === 'completed') {
+          insertData.completed_at = new Date().toISOString();
+          if (right_answer !== undefined) {
+            insertData.right_answer = right_answer;
+          }
+          if (wrong_answer !== undefined) {
+            insertData.wrong_answer = wrong_answer;
+          }
+        }
+
+        const { data, error } = await supabase
+          .from('user_module_progress')
+          .insert([insertData])
+          .select()
+          .single();
+
+        if (error) throw error;
+        result = data;
+      }
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      console.error('Error saving progress:', err);
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  },
+
+  // Reset user progress for a module while keeping history
+  resetModuleProgress: async (req, res) => {
+    try {
+      const { id: moduleId } = req.params;
+      const { user_id } = req.body;
+
+      if (!user_id) {
+        return res.status(400).json({
+          success: false,
+          error: 'user_id is required'
+        });
+      }
+
+      // Get existing progress
+      const { data: existingProgress, error: fetchError } = await supabase
+        .from('user_module_progress')
+        .select('*')
+        .eq('module_id', moduleId)
+        .eq('user_id', user_id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+
+      if (existingProgress) {
+        // Move existing progress to history
+        const { error: historyError } = await supabase
+          .from('module_progress_history')
+          .insert([{
+            user_id,
+            module_id: moduleId,
+            right_answer: existingProgress.right_answer,
+            wrong_answer: existingProgress.wrong_answer,
+            completed_at: existingProgress.completed_at,
+            started_at: existingProgress.started_at
+          }]);
+
+        if (historyError) throw historyError;
+
+        // Delete existing progress
+        const { error: deleteError } = await supabase
+          .from('user_module_progress')
+          .delete()
+          .eq('module_id', moduleId)
+          .eq('user_id', user_id);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Create fresh progress entry
+      const { data: newProgress, error: insertError } = await supabase
+        .from('user_module_progress')
+        .insert([{
+          user_id,
+          module_id: moduleId,
+          status: 'not_started',
+          remaining_seconds: null,
+          right_answer: null,
+          wrong_answer: null
+        }])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      res.json({
+        success: true,
+        data: newProgress,
+        message: 'Progress reset successfully'
+      });
+    } catch (err) {
+      console.error('Error resetting progress:', err);
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  },
+
+  // Delete user progress for a module (restart functionality)
+  deleteModuleProgress: async (req, res) => {
+    try {
+      const { id: moduleId } = req.params;
+      const { user_id } = req.query;
+
+      if (!user_id) {
+        return res.status(400).json({
+          success: false,
+          error: 'user_id is required'
+        });
+      }
+
+      // Delete progress
+      const { error } = await supabase
+        .from('user_module_progress')
+        .delete()
+        .eq('module_id', moduleId)
+        .eq('user_id', user_id);
+
+      if (error) throw error;
+
+      res.json({
+        success: true,
+        message: 'Progress deleted successfully'
+      });
+    } catch (err) {
+      console.error('Error deleting progress:', err);
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+};
+
+module.exports = moduleController;
