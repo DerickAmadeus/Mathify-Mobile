@@ -61,12 +61,36 @@ app.use(rateLimitMiddleware());     // Rate limiting
 app.use(jsonMiddleware);            // JSON parser
 app.use(urlencodedMiddleware);      // URL encoded parser
 
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger UI dengan custom config untuk production
+const swaggerUiOptions = {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Mathify API Documentation"
+};
+
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpec, swaggerUiOptions));
 
 // Debug route for swagger spec
 app.get('/swagger.json', (req, res) => {
   res.json(swaggerSpec);
+});
+
+// Simple API documentation page as fallback
+app.get('/docs', (req, res) => {
+  res.json({
+    title: "Mathify API Documentation",
+    version: "1.0.0",
+    baseUrl: getBaseUrl(),
+    endpoints: {
+      health: "GET /api/health",
+      users: "GET /api/users",
+      calculator: "POST /api/calculator/*",
+      graph: "POST /api/graph/*",
+      modules: "GET /api/modules",
+      questions: "GET /api/questions"
+    },
+    swaggerJson: `${getBaseUrl()}/swagger.json`
+  });
 });
 
 // Basic health check route

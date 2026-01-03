@@ -12,6 +12,14 @@
     {
       "src": "/api-docs/(.*)",
       "dest": "src/index.js"
+    },
+    {
+      "src": "/swagger.json",
+      "dest": "src/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "src/index.js"
     }
   ],
   "functions": {
