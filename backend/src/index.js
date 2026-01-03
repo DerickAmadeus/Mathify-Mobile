@@ -26,7 +26,8 @@ const PORT = process.env.PORT || 5000;
 // Determine base URL untuk swagger
 const getBaseUrl = () => {
   if (process.env.NODE_ENV === 'production') {
-    return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://your-vercel-app.vercel.app';
+    // Vercel automatically provides VERCEL_URL environment variable
+    return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://your-mathify-app.vercel.app';
   }
   return `http://localhost:${PORT}`;
 };
