@@ -1,16 +1,13 @@
 {
   "expo": {
     "scheme": "mathify",
-    "name": "Mathify",
-    "slug": "mathify-app",
+    "name": "UAS",
+    "slug": "UAS",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "extra": {
-      "apiUrl": "https://your-app.vercel.app"
-    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
