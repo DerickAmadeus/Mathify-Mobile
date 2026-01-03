@@ -64,6 +64,11 @@ app.use(urlencodedMiddleware);      // URL encoded parser
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Debug route for swagger spec
+app.get('/swagger.json', (req, res) => {
+  res.json(swaggerSpec);
+});
+
 // Basic health check route
 app.get('/api/health', (req, res) => {
   res.json({ 
