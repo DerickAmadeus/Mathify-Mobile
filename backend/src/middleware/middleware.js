@@ -3,10 +3,38 @@ const morgan = require('morgan');
 
 // CORS Middleware
 const corsMiddleware = cors({
-  origin: ['http://localhost:3000', 'http://localhost:19006'], // Expo dev server
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000', 
+      'http://localhost:19006', // Expo dev server
+      'exp://localhost:19000', // Expo mobile
+      /\.vercel\.app$/, // All Vercel apps
+      /\.netlify\.app$/, // All Netlify apps (if needed)
+    ];
+    
+    // Check if origin is allowed
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      }
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 });
 
 // Logging Middleware

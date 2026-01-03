@@ -4,8 +4,10 @@ const dotenv = require('dotenv');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
-// Load environment variables from root directory
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+// Load environment variables - untuk Vercel gunakan environment variables built-in
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.join(__dirname, '../../.env') });
+}
 
 const {
   corsMiddleware,
@@ -21,6 +23,14 @@ const {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Determine base URL untuk swagger
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://your-vercel-app.vercel.app';
+  }
+  return `http://localhost:${PORT}`;
+};
+
 // Swagger configuration
 const swaggerOptions = {
   definition: {
@@ -32,12 +42,12 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
-        description: 'Development server'
+        url: getBaseUrl(),
+        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
       }
     ]
   },
-  apis: ['./src/routes/*.js'] // Path to route files with Swagger comments
+  apis: [path.join(__dirname, 'routes/*.js')] // Path to route files with Swagger comments
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
@@ -90,12 +100,15 @@ app.use('*', (req, res) => {
 // Error handling middleware (harus di paling akhir)
 app.use(errorMiddleware);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
-});
+// Start server only in development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
+  });
+}
 
+// Export app for Vercel
 module.exports = app;
