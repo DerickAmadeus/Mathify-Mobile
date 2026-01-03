@@ -6,7 +6,7 @@ const swaggerUi = require('swagger-ui-express');
 
 // Load environment variables - untuk Vercel gunakan environment variables built-in
 if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: path.join(__dirname, '../../.env') });
+  dotenv.config({ path: path.join(__dirname, '../.env') });
 }
 
 const {
