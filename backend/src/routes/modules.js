@@ -32,6 +32,8 @@ const moduleController = require('../controllers/moduleController');
  *                     type: integer
  *                   difficulty:
  *                     type: string
+ *                   material_link:
+ *                     type: string
  *                   created_at:
  *                     type: string
  *       500:
