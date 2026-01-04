@@ -8,7 +8,7 @@ import { useLayoutContext } from '../components/context/LayoutContext';
 import { API } from '../lib/api';
 
 const Modul = () => {
-  const { updateLayoutProps } = useLayoutContext();
+  const { updateLayoutProps, user } = useLayoutContext();
   const isKerjaSoal = false;
   const router = useRouter();
   
@@ -39,7 +39,7 @@ const Modul = () => {
 
   const loadModulesProgress = async (modules) => {
     const progressData = {};
-    const userId = 1; // TODO: Get from actual user context
+    const userId = user.id; // TODO: Get from actual user context
     
     await Promise.allSettled(
       modules.map(async (module) => {

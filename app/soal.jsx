@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, BackHandler, Alert, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { useLayoutContext } from '../components/context/LayoutContext';
 import { API } from '../lib/api';
 
 // --- DATA SOAL DUMMY ---
@@ -37,6 +38,7 @@ const COLORS = {
 const SoalScreen = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { user } = useLayoutContext();  
   const moduleId = params.moduleId || 1; // Get moduleId from route params or default to 1
   
   // Dynamic states
@@ -150,7 +152,7 @@ const SoalScreen = () => {
     try {
       setSavingProgress(true);
       const { rightAnswer, wrongAnswer } = calculateScoreAndSave();
-      const userId = 1;
+      const userId = user.id;
       
       const progressData = {
         user_id: userId,
