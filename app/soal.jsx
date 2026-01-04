@@ -44,6 +44,7 @@ const SoalScreen = () => {
   const [moduleInfo, setModuleInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [savingProgress, setSavingProgress] = useState(false);
   
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -117,6 +118,96 @@ const SoalScreen = () => {
   const handleNav = (idx) => setCurrent(idx);
   const handlePrev = () => setCurrent(c => Math.max(0, c - 1));
   const handleNext = () => setCurrent(c => Math.min(questions.length - 1, c + 1));
+
+  // Function to calculate score and save progress
+  const calculateScoreAndSave = () => {
+    let rightAnswer = 0;
+    let wrongAnswer = 0;
+    
+    // Compare answers with correct answers
+    questions.forEach((question, index) => {
+      const userAnswer = answers[index]?.trim().toLowerCase() || '';
+      const correctAnswer = question.correct_answer?.trim().toLowerCase() || '';
+      
+      if (userAnswer === correctAnswer) {
+        rightAnswer++;
+      } else if (userAnswer !== '' || userAnswer === '') { // Only count as wrong if user provided an answer
+        wrongAnswer++;
+      }
+    });
+    
+    console.log('Quiz Results:', {
+      rightAnswer,
+      wrongAnswer,
+      totalQuestions: questions.length,
+      percentage: questions.length > 0 ? Math.round((rightAnswer / questions.length) * 100) : 0
+    });
+    
+    return { rightAnswer, wrongAnswer };
+  };
+
+  const saveProgress = async () => {
+    try {
+      setSavingProgress(true);
+      const { rightAnswer, wrongAnswer } = calculateScoreAndSave();
+      const userId = 1;
+      
+      const progressData = {
+        user_id: userId,
+        status: 'completed',
+        remaining_seconds: timer,
+        right_answer: rightAnswer,
+        wrong_answer: wrongAnswer
+      };
+      
+      console.log('Saving progress:', progressData);
+      
+      const response = await API.modules.saveProgress(moduleId, progressData);
+      console.log('Progress saved successfully:', response);
+      
+      // Show success alert before navigating
+      Alert.alert(
+        'Quiz Selesai!',
+        `Hasil:\nBenar: ${rightAnswer}\nSalah: ${wrongAnswer}\nSkor: ${questions.length > 0 ? Math.round((rightAnswer / questions.length) * 100) : 0}%`,
+        [
+          { 
+            text: 'OK', 
+            onPress: () => router.replace('/modul') 
+          }
+        ]
+      );
+      
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      Alert.alert(
+        'Error',
+        'Gagal menyimpan progress quiz. Tetapi quiz sudah selesai.',
+        [
+          { 
+            text: 'OK', 
+            onPress: () => router.replace('/modul') 
+          }
+        ]
+      );
+    } finally {
+      setSavingProgress(false);
+    }
+  };
+
+  const handleFinishAttempt = () => {
+    Alert.alert(
+      'Selesaikan Quiz?',
+      'Apakah kamu yakin ingin menyelesaikan quiz ini? Jawaban akan disimpan dan tidak dapat diubah lagi.',
+      [
+        { text: 'Batal', style: 'cancel' },
+        { 
+          text: 'Selesaikan', 
+          onPress: saveProgress,
+          style: 'destructive' 
+        }
+      ]
+    );
+  };
 
   const min = String(Math.floor(timer / 60)).padStart(2, '0');
   const sec = String(timer % 60).padStart(2, '0');
@@ -295,8 +386,14 @@ const SoalScreen = () => {
 
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.finishBtn} onPress={() => router.replace('/modul')}>
-            <Text style={styles.finishBtnText}>Finish attempt ...</Text>
+          <TouchableOpacity 
+            style={[styles.finishBtn, savingProgress && styles.finishBtnDisabled]} 
+            onPress={handleFinishAttempt}
+            disabled={savingProgress}
+          >
+            <Text style={styles.finishBtnText}>
+              {savingProgress ? 'Menyimpan...' : 'Finish attempt ...'}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.timerContainer}>
@@ -632,6 +729,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 4,
+  },
+  finishBtnDisabled: {
+    backgroundColor: COLORS.border,
+    opacity: 0.6,
   },
   finishBtnText: {
     color: '#fff',

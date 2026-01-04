@@ -26,7 +26,7 @@ const Modul = () => {
       const modules = Array.isArray(modulesData) ? modulesData : [];
       setModules(modules);
       
-      // Load progress for each module (using dummy userId = 1 for now)
+      // Load progress for each module
       await loadModulesProgress(modules);
     } catch (err) {
       console.error('Error loading modules:', err);
@@ -44,8 +44,7 @@ const Modul = () => {
     await Promise.allSettled(
       modules.map(async (module) => {
         try {
-          const progressResponse = await API.modules.getProgress(module.id, userId);
-          const progress = progressResponse?.data || progressResponse;
+          const progress = await fetchModuleProgress(module.id, userId);
           console.log(`Progress for module ${module.id}:`, progress);
           if (progress) {
             // Transform backend data to frontend format
@@ -60,15 +59,6 @@ const Modul = () => {
           }
         } catch (err) {
           console.log(`No progress found for module ${module.id}:`, err.message);
-          // Create dummy progress for testing
-          if (module.id === 1) {
-            progressData[module.id] = {
-              correct: 8,
-              wrong: 2,
-              score: 80,
-              completed: true
-            };
-          }
         }
       })
     );
@@ -76,6 +66,18 @@ const Modul = () => {
     console.log('All progress data:', progressData);
     setModuleProgress(progressData);
   };
+
+  const fetchModuleProgress = async (moduleId, userId) => {
+    try {
+      const response = await API.modules.getProgress(moduleId, userId);
+      return response.data;
+    } catch (err) {
+      console.error('Error fetching module progress:', err);
+      return null;
+    }
+  };
+
+
 
   useEffect(() => {
     updateLayoutProps({
@@ -113,7 +115,7 @@ const Modul = () => {
     description, 
     duration, 
     materialLink, // UPDATE: Terima props materialLink
-    progress, // NEW: Quiz progress data
+    progress, // Progress data from backend
     onPress 
   }) => (
     <View style={styles.cardWrapper}>
@@ -138,7 +140,7 @@ const Modul = () => {
           {description}
         </Text>
         
-        {/* Progress Section */}
+        {/* Progress/Status Section */}
         <View style={styles.progressSection}>
           {progress ? (
             <>
@@ -156,17 +158,22 @@ const Modul = () => {
                   <Text style={styles.statText}>Skor: {progress.score || 0}%</Text>
                 </View>
               </View>
-              <View style={styles.progressBadge}>
-                <Text style={styles.progressBadgeText}>
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedBadgeText}>
                   {progress.completed ? 'Selesai' : 'Dalam Progress'}
                 </Text>
               </View>
             </>
           ) : (
-            <View style={styles.noProgressContainer}>
-              <Feather name="play-circle" size={16} color="#64748b" />
-              <Text style={styles.noProgressText}>Belum ada progress - Mulai quiz sekarang!</Text>
-            </View>
+            <>
+              <View style={styles.statusContainer}>
+                <Feather name="clock" size={16} color="#64748b" />
+                <Text style={styles.statusText}>Belum Dikerjakan</Text>
+              </View>
+              <View style={styles.statusBadge}>
+                <Text style={styles.statusBadgeText}>Siap Dimulai</Text>
+              </View>
+            </>
           )}
         </View>
         
@@ -251,7 +258,7 @@ const Modul = () => {
                     duration={`${module.duration_minutes || 20} menit`}
                     // UPDATE: Passing data link dari Supabase ke Component
                     materialLink={module.material_link}
-                    // NEW: Pass progress data 
+                    // Pass progress data from backend
                     progress={moduleProgress[module.id]}
                     onPress={() => {
                       router.push(`/soal?moduleId=${module.id}`);
@@ -305,7 +312,7 @@ const styles = StyleSheet.create({
     emptyText: { color: '#b0b0b0', fontSize: 16, textAlign: 'center' },
     retryButton: { backgroundColor: 'rgba(79, 172, 254, 0.2)', borderWidth: 1, borderColor: '#4facfe', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10 },
     retryButtonText: { color: '#4facfe', fontSize: 14, fontWeight: '600', textAlign: 'center' },
-    // Progress styles
+    // Progress/Status styles
     progressSection: { 
       marginBottom: 15, 
       padding: 12, 
@@ -330,29 +337,41 @@ const styles = StyleSheet.create({
       fontSize: 11, 
       fontWeight: '500' 
     },
-    progressBadge: { 
+    completedBadge: { 
       alignSelf: 'flex-start', 
       backgroundColor: 'rgba(74, 222, 128, 0.2)', 
       paddingHorizontal: 8, 
       paddingVertical: 2, 
       borderRadius: 6 
     },
-    progressBadgeText: { 
+    completedBadgeText: { 
       color: '#4ade80', 
       fontSize: 10, 
       fontWeight: '600',
       textTransform: 'uppercase'
     },
-    noProgressContainer: {
+    // Default status styles when no progress
+    statusContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      justifyContent: 'center'
+      gap: 8
     },
-    noProgressText: {
-      color: '#64748b',
-      fontSize: 12,
-      fontStyle: 'italic'
+    statusText: {
+      color: '#94a3b8',
+      fontSize: 13,
+      fontWeight: '500'
+    },
+    statusBadge: { 
+      backgroundColor: 'rgba(79, 172, 254, 0.2)', 
+      paddingHorizontal: 10, 
+      paddingVertical: 4, 
+      borderRadius: 8 
+    },
+    statusBadgeText: { 
+      color: '#4facfe', 
+      fontSize: 11, 
+      fontWeight: '600',
+      textTransform: 'uppercase'
     },
 });
 
