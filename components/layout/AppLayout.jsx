@@ -30,7 +30,7 @@ const AppLayout = ({
           onPress: async () => {
             setProfileMenuVisible(false);
             await logout();
-            router.replace('/login');
+            // ProtectedRoute akan otomatis redirect ke login
           }
         }
       ]

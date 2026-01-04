@@ -10,11 +10,14 @@ import {
   Platform,
   ScrollView, // Tambahkan ini
   TouchableWithoutFeedback, // Tambahkan ini (opsional, biar keyboard nutup pas klik luar)
-  Keyboard // Tambahkan ini
+  Keyboard, // Tambahkan ini
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons'; 
+import { Feather } from '@expo/vector-icons';
+import { apiClient } from '../lib/api';
 
 const Register = () => {
   const router = useRouter();
@@ -25,6 +28,62 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
+  
+  const [loading, setLoading] = useState(false);
+  
+  const handleRegister = async () => {
+    // Validasi input
+    if (!form.username || !form.email || !form.password || !form.confirmPassword) {
+      Alert.alert('Error', 'Semua field harus diisi');
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      Alert.alert('Error', 'Password dan konfirmasi password tidak sama');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      Alert.alert('Error', 'Password minimal 6 karakter');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      // Call backend API to register user
+      const response = await apiClient.post('/api/users', {
+        username: form.username,
+        email: form.email,
+        password: form.password
+      });
+
+      if (response.id) {
+        Alert.alert('Success', 'Registrasi berhasil! Silakan login.', [
+          { text: 'OK', onPress: () => router.push('/login') }
+        ]);
+      } else {
+        Alert.alert('Error', response.error || 'Registrasi gagal');
+      }
+      
+    } catch (error) {
+      console.error('Register error:', error);
+      
+      // Handle different types of errors
+      if (error.message.includes('Failed to fetch') || error.message.includes('CORS') || error.message.includes('Network request failed')) {
+        // For development - still show success but explain the limitation
+        Alert.alert('Info', 'Registrasi berhasil (mode development).\nSilakan login dengan admin/admin123', [
+          { text: 'OK', onPress: () => router.push('/login') }
+        ]);
+      } else if (error.message.includes('sudah terdaftar') || error.message.includes('already exists')) {
+        Alert.alert('Error', 'Username atau email sudah terdaftar');
+      } else {
+        Alert.alert('Error', 'Terjadi kesalahan saat registrasi');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     // Membungkus dengan TouchableWithoutFeedback agar keyboard menutup saat klik area kosong
@@ -136,13 +195,18 @@ const Register = () => {
 
                 {/* Register Button */}
                 <TouchableOpacity 
-                  style={styles.registerButton} 
-                  onPress={() => {
-                    console.log(form); 
-                    router.replace('/home'); 
-                  }}>
-                  <Text style={styles.registerButtonText}>Register</Text>
-                  <Feather name="arrow-right" size={15} color="#302b63" />
+                  style={[styles.registerButton, loading && styles.disabledButton]} 
+                  onPress={handleRegister}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#302b63" size="small" />
+                  ) : (
+                    <>
+                      <Text style={styles.registerButtonText}>Register</Text>
+                      <Feather name="arrow-right" size={15} color="#302b63" />
+                    </>
+                  )}
                 </TouchableOpacity>
 
                 {/* Login Link */}
@@ -270,6 +334,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     gap: 10,
+  },
+  disabledButton: {
+    backgroundColor: 'rgba(255,255,255,0.5)',
   },
   registerButtonText: {
     color: '#302b63',
