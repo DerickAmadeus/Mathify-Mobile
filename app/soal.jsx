@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, BackHandler, Alert, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, StatusBar } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { View, Text, BackHandler, Alert, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator } from 'react-native';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { API } from '../lib/api';
 
 // --- DATA SOAL DUMMY ---
 const soalList = [
@@ -35,9 +36,54 @@ const COLORS = {
 
 const SoalScreen = () => {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const moduleId = params.moduleId || 1; // Get moduleId from route params or default to 1
+  
+  // Dynamic states
+  const [questions, setQuestions] = useState([]);
+  const [moduleInfo, setModuleInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState(Array(soalList.length).fill(''));
-  const [timer, setTimer] = useState(8 * 60); 
+  const [answers, setAnswers] = useState([]);
+  const [timer, setTimer] = useState(0); // Will be set from module duration 
+
+  // Load module and questions data
+  const loadQuizData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Load module info
+      const moduleResponse = await API.modules.getById(moduleId);
+      const moduleData = moduleResponse?.data || moduleResponse;
+      setModuleInfo(moduleData);
+      
+      // Set timer based on module duration
+      setTimer((moduleData?.duration_minutes || 10) * 60);
+      
+      // Load questions for this module
+      const questionsResponse = await API.questions.getByModule(moduleId);
+      const questionsData = Array.isArray(questionsResponse) ? questionsResponse : questionsResponse?.data || [];
+      setQuestions(questionsData);
+      
+      // Initialize answers array
+      setAnswers(Array(questionsData.length).fill(''));
+      
+      console.log('Module loaded:', moduleData);
+      console.log('Questions loaded:', questionsData);
+    } catch (err) {
+      console.error('Error loading quiz data:', err);
+      setError('Gagal memuat data soal. Silakan coba lagi.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    loadQuizData();
+  }, [moduleId]);
 
   // --- LOGIC (Sama seperti sebelumnya) ---
   useEffect(() => {
@@ -70,20 +116,19 @@ const SoalScreen = () => {
 
   const handleNav = (idx) => setCurrent(idx);
   const handlePrev = () => setCurrent(c => Math.max(0, c - 1));
-  const handleNext = () => setCurrent(c => Math.min(soalList.length - 1, c + 1));
+  const handleNext = () => setCurrent(c => Math.min(questions.length - 1, c + 1));
 
   const min = String(Math.floor(timer / 60)).padStart(2, '0');
   const sec = String(timer % 60).padStart(2, '0');
 
   // --- COMPONENT PLACEHOLDER ---
   
-  // Placeholder untuk Gambar Rumus Matematika
-  const MathPlaceholder = ({ label }) => (
-    <View style={styles.placeholderContainer}>
-      <View style={styles.placeholderBox}>
-        {/* Nanti ganti <Image source={...} style={{width: '100%', height: '100%'}} resizeMode="contain" /> */}
-        <Text style={styles.placeholderText}>MATH PNG HERE</Text>
-        <Text style={styles.placeholderSubText}>{label}</Text>
+  // Component for displaying mathematical formulas as text
+  const MathFormula = ({ formula, title }) => (
+    <View style={styles.formulaContainer}>
+      <Text style={styles.formulaTitle}>{title}</Text>
+      <View style={styles.formulaBox}>
+        <Text style={styles.formulaText}>{formula}</Text>
       </View>
     </View>
   );
@@ -105,6 +150,46 @@ const SoalScreen = () => {
     </View>
   );
 
+  // Show loading state
+  if (loading) {
+    return (
+      <View style={[styles.root, styles.centerContainer]}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+        <Stack.Screen options={{ headerShown: false }} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Memuat soal...</Text>
+      </View>
+    );
+  }
+  
+  // Show error state
+  if (error) {
+    return (
+      <View style={[styles.root, styles.centerContainer]}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+        <Stack.Screen options={{ headerShown: false }} />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadQuizData}>
+          <Text style={styles.retryText}>Coba Lagi</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+  
+  // Show empty state
+  if (questions.length === 0) {
+    return (
+      <View style={[styles.root, styles.centerContainer]}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+        <Stack.Screen options={{ headerShown: false }} />
+        <Text style={styles.errorText}>Tidak ada soal tersedia untuk modul ini.</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
+          <Text style={styles.retryText}>Kembali</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
@@ -112,8 +197,8 @@ const SoalScreen = () => {
       
       {/* Header Apps */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Persamaan Kuadrat</Text>
-        <Text style={styles.headerSubtitle}>Home &gt; Modules &gt; Quiz</Text>
+        <Text style={styles.headerTitle}>{moduleInfo?.title || 'Quiz'}</Text>
+        <Text style={styles.headerSubtitle}>Home &gt; Modules &gt; {moduleInfo?.title || 'Quiz'}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -137,13 +222,18 @@ const SoalScreen = () => {
           <View style={styles.divider} />
 
           {/* Isi Soal */}
-          <Text style={styles.questionText}>{soalList[current].question}</Text>
+          <Text style={styles.questionText}>{questions[current]?.title || 'Tidak ada pertanyaan'}</Text>
           
-          {/* MATH PLACEHOLDER (Sesuai request) */}
-          <MathPlaceholder label={soalList[current].latexPlaceholder} />
+          {/* MATH FORMULA (Dynamic) */}
+          {questions[current]?.formula && (
+            <MathFormula 
+              formula={questions[current].formula}
+              title="Rumus:"
+            />
+          )}
 
           {/* Input Jawaban */}
-          <Text style={styles.inputLabel}>{soalList[current].inputLabel}</Text>
+          <Text style={styles.inputLabel}>{questions[current]?.instruction || 'Masukkan jawaban Anda:'}</Text>
           <TextInput
             style={styles.textInput}
             value={answers[current]}
@@ -168,9 +258,9 @@ const SoalScreen = () => {
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={[styles.navBtnMain, current === soalList.length - 1 && styles.navBtnDisabled]} 
+            style={[styles.navBtnMain, current === questions.length - 1 && styles.navBtnDisabled]} 
             onPress={handleNext} 
-            disabled={current === soalList.length - 1}
+            disabled={current === questions.length - 1}
           >
             <Text style={styles.navBtnText}>Next page →</Text>
           </TouchableOpacity>
@@ -182,7 +272,7 @@ const SoalScreen = () => {
           
           {/* Grid Nomor */}
           <View style={styles.gridContainer}>
-            {soalList.map((_, idx) => {
+            {questions.map((_, idx) => {
               const isActive = current === idx;
               const isAnswered = !!answers[idx];
               return (
@@ -353,6 +443,65 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 4,
     fontFamily: 'monospace',
+  },
+
+  // Math Formula Display
+  formulaContainer: {
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  formulaTitle: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  formulaBox: {
+    backgroundColor: COLORS.bg,
+    padding: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  formulaText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    fontFamily: 'monospace', // Better for mathematical expressions
+  },
+
+  // Loading, Error, and Retry States
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    color: COLORS.text,
+    fontSize: 16,
+    marginTop: 10,
+  },
+  errorText: {
+    color: COLORS.red,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: COLORS.text,
+    fontWeight: 'bold',
   },
 
   // Input Jawaban

@@ -179,7 +179,7 @@ const Modul = () => {
                     totalQuestions={module.total_questions}
                     onPress={() => {
                       console.log('Start Quiz for module:', module.id);
-                      router.push('/soal');
+                      router.push(`/soal?moduleId=${module.id}`);
                     }}
                   />
                 );
