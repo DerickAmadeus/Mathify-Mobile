@@ -1,20 +1,57 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useLayoutContext } from '../components/context/LayoutContext';
+import { API } from '../lib/api';
 
 const Modul = () => {
   const { updateLayoutProps } = useLayoutContext();
   const isKerjaSoal = false;
   const router = useRouter();
+  
+  // State management
+  const [modules, setModules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load modules from API
+  const loadModules = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Loading modules from API...');
+      const response = await API.modules.getAll();
+      console.log('API response received:', response);
+      
+      // Extract data from API response
+      const modulesData = response?.data || response;
+      console.log('Modules data extracted:', modulesData);
+      console.log('Is array?', Array.isArray(modulesData));
+      console.log('Length:', modulesData?.length);
+      
+      // Ensure modules is always an array
+      const modules = Array.isArray(modulesData) ? modulesData : [];
+      console.log('Setting modules state:', modules);
+      setModules(modules);
+    } catch (err) {
+      console.error('Error loading modules:', err);
+      setError('Gagal memuat data modul. Silakan coba lagi.');
+      setModules([]); // Set empty array on error
+    } finally {
+      console.log('Setting loading to false');
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     updateLayoutProps({
       history: [],
       onClearHistory: () => {},
     });
+    
+    loadModules();
   }, [updateLayoutProps]); 
 
   const SoalContainer = ({ 
@@ -98,6 +135,8 @@ const Modul = () => {
   );
 
   const renderContent = () => {
+    console.log('Render - loading:', loading, 'error:', error, 'modules length:', modules?.length);
+    
     if (isKerjaSoal) {
       return (
         <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
@@ -109,47 +148,52 @@ const Modul = () => {
     } else {
       return (
         <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
-          <ScrollView 
-            style={styles.container}
-            contentContainerStyle={styles.contentContainer}
-            showsVerticalScrollIndicator={false}
-          >
-          <SoalContainer
-            title="Kalkulus I"
-            difficulty="medium"
-            description="Limit, turunan, dan integral dasar"
-            duration="20 menit"
-            onPress={() => console.log('Start Quiz!')}
-          />
-          <SoalContainer
-            title="Aljabar Linear"
-            difficulty="hard"
-            description="Matriks, determinan, dan ruang vektor"
-            duration="30 menit"
-            onPress={() => console.log('Start Quiz!')}
-          />
-          <SoalContainer
-            title="Geometri Analitik"
-            difficulty="easy"
-            description="Koordinat, garis, dan lingkaran"
-            duration="15 menit"
-            onPress={() => { console.log('Start Quiz!'); router.push('/soal'); }}
-          />
-           <SoalContainer
-            title="Statistika Dasar"
-            difficulty="medium"
-            description="Mean, median, modus, dan standar deviasi"
-            duration="25 menit"
-            onPress={() => console.log('Start Quiz!')}
-          />
-           <SoalContainer
-            title="Trigonometri"
-            difficulty="hard"
-            description="Fungsi trigonometri dan identitas"
-            duration="30 menit"
-            onPress={() => console.log('Start Quiz!')}
-          />
-          </ScrollView>
+          {loading ? (
+            <View style={styles.centerContainer}>
+              <ActivityIndicator size="large" color="#4facfe" />
+              <Text style={styles.loadingText}>Memuat modul...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.centerContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={loadModules}>
+                <Text style={styles.retryButtonText}>Coba Lagi</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <ScrollView 
+              style={styles.container}
+              contentContainerStyle={styles.contentContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              
+              {modules && modules.length > 0 ? modules.map((module) => {
+                console.log('Rendering module:', module.title);
+                return (
+                  <SoalContainer
+                    key={module.id}
+                    title={module.title}
+                    difficulty={module.difficulty || 'medium'}
+                    description={module.description || 'Deskripsi tidak tersedia'}
+                    duration={`${module.duration_minutes || 20} menit`}
+                    totalQuestions={module.total_questions}
+                    onPress={() => {
+                      console.log('Start Quiz for module:', module.id);
+                      router.push('/soal');
+                    }}
+                  />
+                );
+              }) : (
+                <Text style={styles.debugText}>No modules to display</Text>
+              )}
+              
+              {(!modules || modules.length === 0) && !loading && !error && (
+                <View style={styles.centerContainer}>
+                  <Text style={styles.emptyText}>Belum ada modul tersedia</Text>
+                </View>
+              )}
+            </ScrollView>
+          )}
         </LinearGradient>
       );
     }
@@ -302,6 +346,52 @@ const styles = StyleSheet.create({
   subtitle: {
     color: '#aaa',
     fontSize: 16,
+  },
+  
+  // Loading and Error States
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    color: '#4facfe',
+    fontSize: 16,
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#f87171',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  emptyText: {
+    color: '#b0b0b0',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: 'rgba(79, 172, 254, 0.2)',
+    borderWidth: 1,
+    borderColor: '#4facfe',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  retryButtonText: {
+    color: '#4facfe',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  debugText: {
+    color: '#ffff00',
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 
