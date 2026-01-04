@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   Image,
   StyleSheet, 
@@ -11,11 +11,15 @@ import {
   TouchableWithoutFeedback, 
   Keyboard,
   ScrollView,
-  Dimensions
+  Dimensions,
+  Alert,
+  ActivityIndicator
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Feather } from '@expo/vector-icons'
+import { useLayoutContext } from '../components/context/LayoutContext'
+import { apiClient } from '../lib/api'
 
 const { height } = Dimensions.get('window');
 
@@ -23,7 +27,58 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { login, isAuthenticated } = useLayoutContext()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/home')
+    }
+  }, [isAuthenticated])
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Tolong isi username dan password')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await apiClient.post('/api/users/auth/login', {
+        username: email, // Using email field as username
+        password: password,
+      })
+
+      if (response.success) {
+        // Save user data
+        const userData = {
+          id: response.user.id,
+          username: response.user.username,
+          email: response.user.email,
+          full_name: response.user.username, // Use username as display name
+        }
+
+        // Create a mock session token
+        const sessionToken = `session_${response.user.id}_${Date.now()}`
+        
+        await login(userData, sessionToken)
+        
+        Alert.alert('Success', 'Login berhasil!', [
+          { text: 'OK', onPress: () => router.replace('/home') }
+        ])
+      } else {
+        Alert.alert('Login Failed', response.error || 'Login gagal')
+      }
+      
+    } catch (error) {
+      console.error('Login error:', error)
+      Alert.alert('Error', 'Username atau password salah')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -60,14 +115,13 @@ const Login = () => {
                 <Text style={styles.welcomeTitle}>Welcome back</Text>
                 
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Email</Text>
+                  <Text style={styles.inputLabel}>Username</Text>
                   <TextInput
                     style={styles.input}
                     value={email}
                     onChangeText={setEmail}
-                    placeholder="kristin.watson@example.com"
+                    placeholder="Enter your username"
                     placeholderTextColor="#9CA3AF"
-                    keyboardType="email-address"
                     autoCapitalize="none"
                   />
                 </View>
@@ -102,11 +156,16 @@ const Login = () => {
                 </View>
 
                 <TouchableOpacity 
-                  style={styles.signInButton} 
-                  onPress={() => router.replace('/home')}
+                  style={[styles.signInButton, loading && styles.disabledButton]} 
+                  onPress={handleLogin}
+                  disabled={loading}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.signInText}>Sign in</Text>
+                  {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <Text style={styles.signInText}>Sign in</Text>
+                  )}
                 </TouchableOpacity>
 
                 <Text style={styles.dividerText}>Sign in with</Text>
@@ -287,6 +346,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  disabledButton: {
+    backgroundColor: 'rgba(59, 130, 246, 0.5)',
   },
   signInText: {
     color: 'white',

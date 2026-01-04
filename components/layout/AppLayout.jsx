@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StatusBar, View} from 'react-native';
+import { StatusBar, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import TopBar from './TopBar';
@@ -13,14 +13,28 @@ const AppLayout = ({
   historyType = "calculator"
 }) => {
   const router = useRouter();
-  const { layoutProps } = useLayoutContext();
+  const { layoutProps, logout } = useLayoutContext();
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
 
-  const handleLogout = () => {
-    setProfileMenuVisible(false);
-    router.replace('/login');
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Apakah kamu yakin ingin logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            setProfileMenuVisible(false);
+            await logout();
+            router.replace('/login');
+          }
+        }
+      ]
+    );
   };
 
   return (
