@@ -8,13 +8,14 @@ import { useLayoutContext } from '../components/context/LayoutContext';
 import { API } from '../lib/api';
 
 const Modul = () => {
-  const { updateLayoutProps } = useLayoutContext();
+  const { updateLayoutProps, user } = useLayoutContext();
   const isKerjaSoal = false;
   const router = useRouter();
   
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [moduleProgress, setModuleProgress] = useState({}); // Store progress for each module
 
   const loadModules = async () => {
     try {
@@ -24,6 +25,9 @@ const Modul = () => {
       const modulesData = response?.data || response;
       const modules = Array.isArray(modulesData) ? modulesData : [];
       setModules(modules);
+      
+      // Load progress for each module
+      await loadModulesProgress(modules);
     } catch (err) {
       console.error('Error loading modules:', err);
       setError('Gagal memuat data modul. Silakan coba lagi.');
@@ -32,6 +36,48 @@ const Modul = () => {
       setLoading(false);
     }
   };
+
+  const loadModulesProgress = async (modules) => {
+    const progressData = {};
+    const userId = user.id; // TODO: Get from actual user context
+    
+    await Promise.allSettled(
+      modules.map(async (module) => {
+        try {
+          const progress = await fetchModuleProgress(module.id, userId);
+          console.log(`Progress for module ${module.id}:`, progress);
+          if (progress) {
+            // Transform backend data to frontend format
+            progressData[module.id] = {
+              ...progress,
+              correct: progress.right_answer || 0,
+              wrong: progress.wrong_answer || 0,
+              score: progress.right_answer && progress.wrong_answer ? 
+                Math.round((progress.right_answer / (progress.right_answer + progress.wrong_answer)) * 100) : 0,
+              completed: progress.status === 'completed'
+            };
+          }
+        } catch (err) {
+          console.log(`No progress found for module ${module.id}:`, err.message);
+        }
+      })
+    );
+    
+    console.log('All progress data:', progressData);
+    setModuleProgress(progressData);
+  };
+
+  const fetchModuleProgress = async (moduleId, userId) => {
+    try {
+      const response = await API.modules.getProgress(moduleId, userId);
+      return response.data;
+    } catch (err) {
+      console.error('Error fetching module progress:', err);
+      return null;
+    }
+  };
+
+
 
   useEffect(() => {
     updateLayoutProps({
@@ -69,6 +115,7 @@ const Modul = () => {
     description, 
     duration, 
     materialLink, // UPDATE: Terima props materialLink
+    progress, // Progress data from backend
     onPress 
   }) => (
     <View style={styles.cardWrapper}>
@@ -92,6 +139,43 @@ const Modul = () => {
         <Text style={styles.cardDescription} numberOfLines={2}>
           {description}
         </Text>
+        
+        {/* Progress/Status Section */}
+        <View style={styles.progressSection}>
+          {progress ? (
+            <>
+              <View style={styles.progressStats}>
+                <View style={styles.statItem}>
+                  <Feather name="check-circle" size={14} color="#4ade80" />
+                  <Text style={styles.statText}>Benar: {progress.correct || 0}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Feather name="x-circle" size={14} color="#f87171" />
+                  <Text style={styles.statText}>Salah: {progress.wrong || 0}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Feather name="award" size={14} color="#fbbf24" />
+                  <Text style={styles.statText}>Skor: {progress.score || 0}%</Text>
+                </View>
+              </View>
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedBadgeText}>
+                  {progress.completed ? 'Selesai' : 'Dalam Progress'}
+                </Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.statusContainer}>
+                <Feather name="clock" size={16} color="#64748b" />
+                <Text style={styles.statusText}>Belum Dikerjakan</Text>
+              </View>
+              <View style={styles.statusBadge}>
+                <Text style={styles.statusBadgeText}>Siap Dimulai</Text>
+              </View>
+            </>
+          )}
+        </View>
         
         <View style={styles.cardFooter}>
           <View style={styles.durationContainer}>
@@ -173,7 +257,9 @@ const Modul = () => {
                     description={module.description || 'Deskripsi tidak tersedia'}
                     duration={`${module.duration_minutes || 20} menit`}
                     // UPDATE: Passing data link dari Supabase ke Component
-                    materialLink={module.material_link} 
+                    materialLink={module.material_link}
+                    // Pass progress data from backend
+                    progress={moduleProgress[module.id]}
                     onPress={() => {
                       router.push(`/soal?moduleId=${module.id}`);
                     }}
@@ -226,6 +312,67 @@ const styles = StyleSheet.create({
     emptyText: { color: '#b0b0b0', fontSize: 16, textAlign: 'center' },
     retryButton: { backgroundColor: 'rgba(79, 172, 254, 0.2)', borderWidth: 1, borderColor: '#4facfe', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10 },
     retryButtonText: { color: '#4facfe', fontSize: 14, fontWeight: '600', textAlign: 'center' },
+    // Progress/Status styles
+    progressSection: { 
+      marginBottom: 15, 
+      padding: 12, 
+      backgroundColor: 'rgba(79, 172, 254, 0.1)', 
+      borderRadius: 10, 
+      borderWidth: 1, 
+      borderColor: 'rgba(79, 172, 254, 0.2)' 
+    },
+    progressStats: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center',
+      marginBottom: 8
+    },
+    statItem: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 4 
+    },
+    statText: { 
+      color: '#e2e8f0', 
+      fontSize: 11, 
+      fontWeight: '500' 
+    },
+    completedBadge: { 
+      alignSelf: 'flex-start', 
+      backgroundColor: 'rgba(74, 222, 128, 0.2)', 
+      paddingHorizontal: 8, 
+      paddingVertical: 2, 
+      borderRadius: 6 
+    },
+    completedBadgeText: { 
+      color: '#4ade80', 
+      fontSize: 10, 
+      fontWeight: '600',
+      textTransform: 'uppercase'
+    },
+    // Default status styles when no progress
+    statusContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8
+    },
+    statusText: {
+      color: '#94a3b8',
+      fontSize: 13,
+      fontWeight: '500'
+    },
+    statusBadge: { 
+      backgroundColor: 'rgba(79, 172, 254, 0.2)', 
+      paddingHorizontal: 10, 
+      paddingVertical: 4, 
+      borderRadius: 8 
+    },
+    statusBadgeText: { 
+      color: '#4facfe', 
+      fontSize: 11, 
+      fontWeight: '600',
+      textTransform: 'uppercase'
+    },
 });
 
 export default Modul;
