@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, BackHandler, Alert, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator, Platform } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLayoutContext } from '../components/context/LayoutContext';
 import { API } from '../lib/api';
 
@@ -51,6 +52,7 @@ const SoalScreen = () => {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [timer, setTimer] = useState(0); // Will be set from module duration 
+  const [flaggedQuestions, setFlaggedQuestions] = useState([]); // Array of flagged question indices 
 
   // Load module and questions data
   const loadQuizData = async () => {
@@ -124,6 +126,16 @@ const SoalScreen = () => {
   const handleNav = (idx) => setCurrent(idx);
   const handlePrev = () => setCurrent(c => Math.max(0, c - 1));
   const handleNext = () => setCurrent(c => Math.min(questions.length - 1, c + 1));
+  
+  const toggleFlag = () => {
+    setFlaggedQuestions(prev => {
+      if (prev.includes(current)) {
+        return prev.filter(idx => idx !== current);
+      } else {
+        return [...prev, current];
+      }
+    });
+  };
 
   // Function to calculate score and save progress
   const calculateScoreAndSave = () => {
@@ -250,45 +262,45 @@ const SoalScreen = () => {
   // Show loading state
   if (loading) {
     return (
-      <View style={[styles.root, styles.centerContainer]}>
+      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={[styles.root, styles.centerContainer]}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
         <Stack.Screen options={{ headerShown: false }} />
         <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Memuat soal...</Text>
-      </View>
+      </LinearGradient>
     );
   }
   
   // Show error state
   if (error) {
     return (
-      <View style={[styles.root, styles.centerContainer]}>
+      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={[styles.root, styles.centerContainer]}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
         <Stack.Screen options={{ headerShown: false }} />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={loadQuizData}>
           <Text style={styles.retryText}>Coba Lagi</Text>
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
     );
   }
   
   // Show empty state
   if (questions.length === 0) {
     return (
-      <View style={[styles.root, styles.centerContainer]}>
+      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={[styles.root, styles.centerContainer]}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
         <Stack.Screen options={{ headerShown: false }} />
         <Text style={styles.errorText}>Tidak ada soal tersedia untuk modul ini.</Text>
         <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
           <Text style={styles.retryText}>Kembali</Text>
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
       <Stack.Screen options={{ headerShown: false }} />
       
@@ -310,9 +322,10 @@ const SoalScreen = () => {
                 <Text style={styles.statusText}>{answers[current] ? 'Answered' : 'Not yet answered'}</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.flagBtn}>
-               {/* Icon Flag sederhana pake Text atau bisa ganti Icon Library */}
-              <Text style={styles.flagText}>🚩 Flag question</Text>
+            <TouchableOpacity style={styles.flagBtn} onPress={toggleFlag}>
+              <Text style={[styles.flagText, flaggedQuestions.includes(current) && styles.flagTextActive]}>
+                🚩 {flaggedQuestions.includes(current) ? 'Unflag question' : 'Flag question'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -369,19 +382,22 @@ const SoalScreen = () => {
             {questions.map((_, idx) => {
               const isActive = current === idx;
               const isAnswered = !!answers[idx];
+              const isFlagged = flaggedQuestions.includes(idx);
               return (
                 <TouchableOpacity
                   key={idx}
                   style={[
                     styles.gridItem,
                     isActive && styles.gridItemActive,
-                    isAnswered && !isActive && styles.gridItemAnswered
+                    isAnswered && !isActive && styles.gridItemAnswered,
+                    isFlagged && !isActive && styles.gridItemFlagged
                   ]}
                   onPress={() => handleNav(idx)}
                 >
                   {isActive && <View style={styles.gridItemActiveIndicator} />}
                   <Text style={[styles.gridText, isActive && { fontWeight: 'bold' }]}>{idx + 1}</Text>
                   {isAnswered && <View style={styles.gridAnsweredUnderline} />}
+                    {isFlagged && <View style={styles.gridFlaggedIndicator}><Text>🚩</Text></View>}
                 </TouchableOpacity>
               );
             })}
@@ -408,7 +424,7 @@ const SoalScreen = () => {
         </View>
 
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -416,7 +432,6 @@ const styles = StyleSheet.create({
   // Layout Dasar
   root: {
     flex: 1,
-    backgroundColor: COLORS.bg,
   },
   header: {
     paddingHorizontal: 20,
@@ -509,6 +524,10 @@ const styles = StyleSheet.create({
   flagText: {
     color: COLORS.red,
     fontSize: 12,
+  },
+  flagTextActive: {
+    color: '#FFD700', // Gold color when flagged
+    fontWeight: 'bold',
   },
   questionText: {
     color: COLORS.text,
@@ -671,6 +690,11 @@ const styles = StyleSheet.create({
   gridItemAnswered: {
     backgroundColor: '#182f2a', // Agak kehijauan dikit
   },
+  gridItemFlagged: {
+    backgroundColor: '#3d3416', // Kuning gelap untuk flagged
+    borderColor: '#FFD700', // Gold border
+    borderWidth: 1,
+  },
   gridText: {
     color: COLORS.text,
     fontSize: 14,
@@ -695,6 +719,12 @@ const styles = StyleSheet.create({
     width: '50%',
     height: 3,
     backgroundColor: COLORS.text,
+  },
+  gridFlaggedIndicator: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    fontSize: 8,
   },
 
   // Tombol Finish & Timer
