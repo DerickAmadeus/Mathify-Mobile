@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StatusBar, View, Alert } from 'react-native';
+import { StatusBar, View, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import TopBar from './TopBar';
@@ -19,22 +19,30 @@ const AppLayout = ({
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
 
   const handleLogout = async () => {
-    Alert.alert(
-      'Logout',
-      'Apakah kamu yakin ingin logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            setProfileMenuVisible(false);
-            await logout();
-            // ProtectedRoute akan otomatis redirect ke login
+    if (Platform.OS == 'web') {
+      // Untuk mobile, langsung logout tanpa konfirmasi
+      setProfileMenuVisible(false);
+      await logout();
+      return;
+    }
+    else {
+      Alert.alert(
+        'Logout',
+        'Apakah kamu yakin ingin logout?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: async () => {
+              setProfileMenuVisible(false);
+              await logout();
+              // ProtectedRoute akan otomatis redirect ke login
+            }
           }
-        }
-      ]
-    );
+        ]
+      );
+    };
   };
 
   return (

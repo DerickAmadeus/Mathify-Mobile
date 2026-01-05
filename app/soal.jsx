@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, BackHandler, Alert, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator } from 'react-native';
+import { View, Text, BackHandler, Alert, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, StatusBar, ActivityIndicator, Platform } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useLayoutContext } from '../components/context/LayoutContext';
 import { API } from '../lib/api';
@@ -91,6 +91,10 @@ const SoalScreen = () => {
   // --- LOGIC (Sama seperti sebelumnya) ---
   useEffect(() => {
     const onBackPress = () => {
+      if (Platform.OS === 'web') {
+        // On web, just prevent going back during quiz
+        return true;
+      }
       Alert.alert(
         'Lagi Ujian!',
         'Kamu tidak bisa kembali sebelum menyelesaikan quiz.',
@@ -168,47 +172,62 @@ const SoalScreen = () => {
       console.log('Progress saved successfully:', response);
       
       // Show success alert before navigating
-      Alert.alert(
-        'Quiz Selesai!',
-        `Hasil:\nBenar: ${rightAnswer}\nSalah: ${wrongAnswer}\nSkor: ${questions.length > 0 ? Math.round((rightAnswer / questions.length) * 100) : 0}%`,
-        [
-          { 
-            text: 'OK', 
-            onPress: () => router.replace('/modul') 
-          }
-        ]
-      );
+      if (Platform.OS === 'web') {
+        // On web, directly navigate without alert
+        router.replace('/modul');
+      } else {
+        Alert.alert(
+          'Quiz Selesai!',
+          `Hasil:\nBenar: ${rightAnswer}\nSalah: ${wrongAnswer}\nSkor: ${questions.length > 0 ? Math.round((rightAnswer / questions.length) * 100) : 0}%`,
+          [
+            { 
+              text: 'OK', 
+              onPress: () => router.replace('/modul') 
+            }
+          ]
+        );
+      }
       
     } catch (error) {
       console.error('Error saving progress:', error);
-      Alert.alert(
-        'Error',
-        'Gagal menyimpan progress quiz. Tetapi quiz sudah selesai.',
-        [
-          { 
-            text: 'OK', 
-            onPress: () => router.replace('/modul') 
-          }
-        ]
-      );
+      if (Platform.OS === 'web') {
+        // On web, directly navigate without alert
+        router.replace('/modul');
+      } else {
+        Alert.alert(
+          'Error',
+          'Gagal menyimpan progress quiz. Tetapi quiz sudah selesai.',
+          [
+            { 
+              text: 'OK', 
+              onPress: () => router.replace('/modul') 
+            }
+          ]
+        );
+      }
     } finally {
       setSavingProgress(false);
     }
   };
 
   const handleFinishAttempt = () => {
-    Alert.alert(
-      'Selesaikan Quiz?',
-      'Apakah kamu yakin ingin menyelesaikan quiz ini? Jawaban akan disimpan dan tidak dapat diubah lagi.',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Selesaikan', 
-          onPress: saveProgress,
-          style: 'destructive' 
-        }
-      ]
-    );
+    if (Platform.OS === 'web') {
+      // On web, directly save progress without confirmation alert
+      saveProgress();
+    } else {
+      Alert.alert(
+        'Selesaikan Quiz?',
+        'Apakah kamu yakin ingin menyelesaikan quiz ini? Jawaban akan disimpan dan tidak dapat diubah lagi.',
+        [
+          { text: 'Batal', style: 'cancel' },
+          { 
+            text: 'Selesaikan', 
+            onPress: saveProgress,
+            style: 'destructive' 
+          }
+        ]
+      );
+    }
   };
 
   const min = String(Math.floor(timer / 60)).padStart(2, '0');
