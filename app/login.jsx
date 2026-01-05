@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import { 
   Image,
   StyleSheet, 
@@ -11,40 +11,37 @@ import {
   TouchableWithoutFeedback, 
   Keyboard,
   ScrollView,
-  Dimensions,
   Alert,
   ActivityIndicator
-} from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useRouter } from 'expo-router'
-import { Feather } from '@expo/vector-icons'
-import { useLayoutContext } from '../components/context/LayoutContext'
-import { apiClient } from '../lib/api'
-
-const { height } = Dimensions.get('window');
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
+import { useLayoutContext } from '../components/context/LayoutContext';
+import { apiClient } from '../lib/api';
 
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
-  const { login, isAuthenticated } = useLayoutContext()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const router = useRouter();
+  const { login, isAuthenticated } = useLayoutContext();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/home')
+      router.replace('/home');
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated]);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Tolong isi username dan password')
-      return
+      Alert.alert('Error', 'Tolong isi username dan password');
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       // Testing fallback credential for development
       if (email === 'admin' && password === 'admin123') {
@@ -53,21 +50,21 @@ const Login = () => {
           username: 'admin',
           email: 'admin@example.com',
           full_name: 'Administrator',
-        }
+        };
         
-        const sessionToken = `session_admin_${Date.now()}`
-        await login(userData, sessionToken)
+        const sessionToken = `session_admin_${Date.now()}`;
+        await login(userData, sessionToken);
         
         Alert.alert('Success', 'Login berhasil!', [
           { text: 'OK', onPress: () => router.replace('/home') }
-        ])
-        return
+        ]);
+        return;
       }
 
       const response = await apiClient.post('/api/users/auth/login', {
-        username: email, // Using email field as username
+        username: email, // Using email field as username logic
         password: password,
-      })
+      });
 
       if (response.success) {
         // Save user data
@@ -75,54 +72,52 @@ const Login = () => {
           id: response.user.id,
           username: response.user.username,
           email: response.user.email,
-          full_name: response.user.username, // Use username as display name
-        }
+          full_name: response.user.username,
+        };
 
-        // Create a mock session token
-        const sessionToken = `session_${response.user.id}_${Date.now()}`
+        const sessionToken = `session_${response.user.id}_${Date.now()}`;
         
-        await login(userData, sessionToken)
+        await login(userData, sessionToken);
         
         Alert.alert('Success', 'Login berhasil!', [
           { text: 'OK', onPress: () => router.replace('/home') }
-        ])
+        ]);
       } else {
-        Alert.alert('Login Failed', response.error || 'Login gagal')
+        Alert.alert('Login Failed', response.error || 'Login gagal');
       }
       
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('Login error:', error);
       
-      // Handle CORS/Network errors with helpful message
       if (error.message.includes('Failed to fetch') || error.message.includes('CORS') || error.message.includes('Network request failed')) {
-        Alert.alert('Info', 'Untuk testing gunakan:\nUsername: admin\nPassword: admin123')
+        Alert.alert('Info', 'Untuk testing gunakan:\nUsername: admin\nPassword: admin123');
       } else {
-        Alert.alert('Error', 'Username atau password salah')
+        Alert.alert('Error', 'Username atau password salah');
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <LinearGradient
         colors={['#0f0c29', '#302b63', '#24243e']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
         style={styles.container}
       >
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <ScrollView 
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+            bounces={false}
           >
             <View style={styles.mainContainer}>
               
+              {/* Bagian 1: Branding (Sama persis dengan Register) */}
               <View style={styles.brandSection}>
                 <View style={styles.logoPlaceholder}> 
                   <Image 
@@ -134,120 +129,103 @@ const Login = () => {
                 <Text style={styles.brandTitle}>Mathify</Text>
               </View>
 
-              {/* Login Card */}
-              <View style={styles.loginCard}>
-                <Text style={styles.welcomeTitle}>Welcome back</Text>
-                
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Username</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your username"
-                    placeholderTextColor="#9CA3AF"
-                    autoCapitalize="none"
-                  />
+              {/* Bagian 2: Login Form (Styling disamakan dengan Register) */}
+              <View style={styles.formSection}>
+                <View style={styles.headerForm}>
+                  <Text style={styles.headerTitle}>Welcome back</Text>
+                  <Text style={styles.headerSubtitle}>Sign in to continue</Text>
                 </View>
 
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="••••••••••••"
-                    placeholderTextColor="#9CA3AF"
-                    secureTextEntry
-                  />
+                {/* Input: Username */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Username</Text>
+                  <View style={styles.inputWrapper}>
+                    <Feather name="user" size={15} color="#aaa" style={styles.inputIcon} />
+                    <TextInput 
+                      style={styles.input}
+                      placeholder="Enter your username"
+                      placeholderTextColor="#aaa"
+                      autoCapitalize="none"
+                      value={email}
+                      onChangeText={setEmail}
+                    />
+                  </View>
                 </View>
 
-                <View style={styles.optionsRow}>
-                  <TouchableOpacity 
-                    style={styles.rememberContainer}
-                    onPress={() => setRememberMe(!rememberMe)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                      {rememberMe && <Text style={styles.checkmark}>✓</Text>}
-                    </View>
-                    <Text style={styles.rememberText}>Remember me</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity>
-                    <Text style={styles.forgotText}>Forgot password?</Text>
-                  </TouchableOpacity>
+                {/* Input: Password */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Password</Text>
+                  <View style={styles.inputWrapper}>
+                    <Feather name="lock" size={15} color="#aaa" style={styles.inputIcon} />
+                    <TextInput 
+                      style={styles.input}
+                      placeholder="Enter your password"
+                      placeholderTextColor="#aaa"
+                      secureTextEntry
+                      value={password}
+                      onChangeText={setPassword}
+                    />
+                  </View>
                 </View>
 
+                {/* Login Button (Styling putih seperti Register) */}
                 <TouchableOpacity 
-                  style={[styles.signInButton, loading && styles.disabledButton]} 
+                  style={[styles.loginButton, loading && styles.disabledButton]} 
                   onPress={handleLogin}
                   disabled={loading}
-                  activeOpacity={0.8}
                 >
                   {loading ? (
-                    <ActivityIndicator color="white" size="small" />
+                    <ActivityIndicator color="#302b63" size="small" />
                   ) : (
-                    <Text style={styles.signInText}>Sign in</Text>
+                    <>
+                      <Text style={styles.loginButtonText}>Sign In</Text>
+                      <Feather name="log-in" size={15} color="#302b63" />
+                    </>
                   )}
                 </TouchableOpacity>
 
-                <Text style={styles.dividerText}>Sign in with</Text>
-
-                <View style={styles.signUpContainer}>
-                  <Text style={styles.signUpText}>Don't have an account? </Text>
-                  <TouchableOpacity onPress={() => router.replace('/register')}>
-                    <Text style={styles.signUpLink}>Sign up</Text>
+                {/* Register Link */}
+                <View style={styles.registerLinkContainer}>
+                  <Text style={styles.registerLinkText}>Don't have an account? </Text>
+                  <TouchableOpacity onPress={() => router.push('/register')}>
+                    <Text style={styles.registerLinkHighlight}>Sign up</Text>
                   </TouchableOpacity>
                 </View>
+
               </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </TouchableWithoutFeedback>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  logoImage: {
-      width: 40,  
-      height: 40,
-  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   mainContainer: {
-    alignItems: 'center',
-    padding: 20,
+    padding: 24,
     width: '100%',
   },
-  backButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    left: 20,
-    zIndex: 10,
-  },
-  backButtonInner: {
-    paddingVertical: 8,
-    paddingRight: 20, 
-  },
-  backText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
+  
+  // --- Styling Branding ---
+  logoImage: {
+    width: 40,  
+    height: 40,
   },
   brandSection: {
     alignItems: 'center',
     marginBottom: 30,
-    marginTop: 60,
+    marginTop: 10,
   },
   logoPlaceholder: {
     width: 60,
@@ -261,142 +239,100 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   brandTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: 'white',
-    letterSpacing: 2,
+    letterSpacing: 1,
   },
 
-  // --- BAGIAN YANG DIPERBAIKI ---
-  loginCard: {
+  // --- Styling Form (Konsisten dengan Register) ---
+  formSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 24,
-    padding: 32,
-    width: '100%',
-    maxWidth: 400,
-    
-    // Shadow Styling
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    
-    // FIX ANDROID: Matikan elevation jika ada border width
-    // Elevation + BorderWidth + Transparan = Garis Putih (Halo)
-    elevation: Platform.OS === 'android' ? 0 : 5, 
-    
+    padding: 24,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    
-    // FIX ANDROID: Mencegah background bocor keluar border
-    overflow: 'hidden', 
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  // -----------------------------
-
-  welcomeTitle: {
-    fontSize: 26,
+  headerForm: {
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 32,
-    textAlign: 'center',
+    marginBottom: 5,
   },
-  inputContainer: {
-    marginBottom: 20,
+  headerSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
   },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.9)',
+
+  // --- Inputs ---
+  inputGroup: {
+    marginBottom: 15, // Sedikit lebih renggang karena item lebih sedikit dari register
+  },
+  label: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
     marginBottom: 8,
+    fontWeight: '500',
   },
-  
-  // --- BAGIAN YANG DIPERBAIKI ---
-  input: {
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
     borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: 'white',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    // FIX ANDROID: Mencegah warna input bocor di pojokan
-    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    height: 50,
+    paddingHorizontal: 15,
   },
-  // -----------------------------
-
-  optionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
+  inputIcon: {
+    marginRight: 10,
   },
-  rememberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
-    borderRadius: 4,
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxActive: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
-  },
-  checkmark: {
+  input: {
+    flex: 1,
     color: 'white',
     fontSize: 12,
-    fontWeight: 'bold',
+    height: '100%',
   },
-  rememberText: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  forgotText: {
-    fontSize: 13,
-    color: '#60A5FA',
-    fontWeight: '500',
-  },
-  signInButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.9)',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  disabledButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-  },
-  signInText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  dividerText: {
-    textAlign: 'center',
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    marginBottom: 20,
-  },
-  signUpContainer: {
+
+  // --- Button ---
+  loginButton: {
+    backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    gap: 10,
   },
-  signUpText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+  disabledButton: {
+    backgroundColor: 'rgba(255,255,255,0.5)',
   },
-  signUpLink: {
-    fontSize: 14,
-    color: '#60A5FA',
-    fontWeight: '600',
+  loginButtonText: {
+    color: '#302b63',
+    fontWeight: 'bold',
+    fontSize: 13,
   },
-})
+
+  // --- Register Link (Footer) ---
+  registerLinkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  registerLinkText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 10,
+  },
+  registerLinkHighlight: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 10,
+    textDecorationLine: 'underline',
+  },
+});
