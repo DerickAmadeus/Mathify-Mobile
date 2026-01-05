@@ -206,12 +206,23 @@ const Modul = () => {
               activeOpacity={0.7}
             >
               <LinearGradient
-                colors={['rgba(108, 92, 231, 1)', 'rgba(81, 45, 168, 1)']}
+                colors={progress?.completed 
+                  ? ['#cbcbcbff', '#ffffff'] 
+                  : ['rgba(108, 92, 231, 1)', 'rgba(81, 45, 168, 1)']}
                 style={styles.startButtonGradient}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               >
-                <Text style={styles.startButtonText}>Mulai</Text>
-                <Feather name="arrow-right" size={18} color="white" />
+                <Text style={[
+                  styles.startButtonText,
+                  progress?.completed && styles.retryButtonText
+                ]}>
+                  {progress?.completed ? 'Ulangi' : 'Mulai'}
+                </Text>
+                <Feather 
+                  name={progress?.completed ? "rotate-ccw" : "arrow-right"} 
+                  size={18} 
+                  color={progress?.completed ? "#1e40af" : "white"} 
+                />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -306,6 +317,7 @@ const styles = StyleSheet.create({
     startButton: { borderRadius: 20, overflow: 'hidden' },
     startButtonGradient: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10 },
     startButtonText: { color: 'white', fontSize: 14, fontWeight: '600', marginRight: 6 },
+    retryButtonText: { color: '#1e40af', fontSize: 14, fontWeight: '600', marginRight: 6 },
     centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
     loadingText: { color: '#4facfe', fontSize: 16, marginTop: 10, textAlign: 'center' },
     errorText: { color: '#f87171', fontSize: 16, textAlign: 'center', marginBottom: 20, lineHeight: 24 },
