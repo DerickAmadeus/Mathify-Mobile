@@ -227,21 +227,6 @@ const SoalScreen = () => {
   );
 
   // Placeholder untuk Grafik
-  const GraphPreview = () => (
-    <View style={styles.card}>
-      <View style={styles.cardHeaderRow}>
-        <Text style={styles.cardTitle}>Graph Preview</Text>
-        <Text style={styles.cardStatus}>Displaying</Text>
-      </View>
-      <View style={styles.graphPlaceholderBox}>
-        {/* Simulasi Grid Garis */}
-        <View style={styles.gridLineVertical} />
-        <View style={styles.gridLineHorizontal} />
-        {/* Nanti ganti component Chart atau Image */}
-        <Text style={styles.placeholderText}>GRAPH PNG HERE</Text>
-      </View>
-    </View>
-  );
 
   // Show loading state
   if (loading) {
@@ -336,9 +321,6 @@ const SoalScreen = () => {
             keyboardType="default"
           />
         </View>
-
-        {/* --- GRAPH PREVIEW CARD --- */}
-        <GraphPreview />
 
         {/* --- NAVIGATION BUTTONS (Prev/Next) --- */}
         <View style={styles.navActionRow}>
@@ -619,28 +601,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Graph Preview
-  graphPlaceholderBox: {
-    height: 200,
-    backgroundColor: '#121320',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  gridLineVertical: {
-    position: 'absolute',
-    width: 1,
-    height: '100%',
-    backgroundColor: '#2f3252',
-  },
-  gridLineHorizontal: {
-    position: 'absolute',
-    width: '100%',
-    height: 1,
-    backgroundColor: '#2f3252',
-  },
 
   // Tombol Navigasi Next/Prev
   navActionRow: {
