@@ -9,6 +9,7 @@ const corsMiddleware = cors({
     
     const allowedOrigins = [
       'http://localhost:3000', 
+      'http://localhost:8081', // Web platform port
       'http://localhost:19006', // Expo dev server
       'exp://localhost:19000', // Expo mobile
       /\.vercel\.app$/, // All Vercel apps
