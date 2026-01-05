@@ -15,6 +15,7 @@ import { Feather } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import { useLayoutContext } from '../components/context/LayoutContext';
 import { apiClient } from '../lib/api'; // Import apiClient seperti di Login.js
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; 
 
 // --- HTML GRAPH ENGINE (TIDAK BERUBAH) ---
 const graphHTML = `
@@ -238,6 +239,8 @@ const graphHTML = `
 `;
 
 const Graph = () => {
+  const insets = useSafeAreaInsets();
+
   // Ambil user dari Context yang sudah login
   const { updateLayoutProps, user } = useLayoutContext(); 
   const webViewRef = useRef(null);
@@ -376,7 +379,7 @@ const Graph = () => {
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { backgroundColor: 'transparent' }]}
+        contentContainerStyle={[styles.scrollContent, { backgroundColor: 'transparent', paddingBottom: Math.max(insets.bottom, 20) }]}
         keyboardShouldPersistTaps="handled"
       >
             

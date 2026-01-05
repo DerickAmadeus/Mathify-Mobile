@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; 
 import Button from '../components/ui/Button';
 import { useLayoutContext } from '../components/context/LayoutContext';
-import { apiClient } from '../lib/api'; // Pastikan path ini benar
+import { apiClient } from '../lib/api';
 
 const Calculator = () => {
+  const insets = useSafeAreaInsets();
   const { updateLayoutProps, user } = useLayoutContext();
   
   // State
@@ -232,7 +234,10 @@ const Calculator = () => {
 
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.gradientBackground}>
-      <View style={styles.mainContent}>
+    <View style={[
+            styles.mainContent, 
+            { paddingBottom: Math.max(insets.bottom, 20) } 
+          ]}>
         {loading && (
             <View style={styles.loadingOverlay}>
                 <ActivityIndicator size="large" color="#4facfe" />
